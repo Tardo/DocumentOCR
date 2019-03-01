@@ -279,11 +279,6 @@ public class DNIeResultActivity extends Activity implements View.OnClickListener
             String docNumber = mActivity.m_dg11.getPersonalNumber();
             String sex = mActivity.m_dg1.getSex();
             String nation = mActivity.m_dg1.getNationality();
-            String profession = mActivity.m_dg11.getProfession();
-            String otherInfo = mActivity.m_dg11.getOtherInfo();
-            String summary = mActivity.m_dg11.getSummary();
-            String custodyInfo = mActivity.m_dg11.getCustodyInfo();
-            String icaoName = mActivity.m_dg11.getIcaoName();
             Date expiryDate = null;
             Date birthday = null;
             try {
