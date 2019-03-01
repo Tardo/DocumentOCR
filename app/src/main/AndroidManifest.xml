@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="ocr.document.tardo.documentocr">
+
+    <uses-permission android:name="android.permission.NFC" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera2.full" />
+
+    <application
+        android:name=".AppMain"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity android:name=".activities.LoginActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".components.NFCOperationsEnc"
+            android:label = "@string/app_title_nfc"
+            android:screenOrientation = "portrait"
+            android:launchMode="singleTask"
+            android:enabled = "false">
+            <intent-filter>
+                <action android:name="android.nfc.action.TAG_DISCOVERED"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.nfc.action.TAG_DISCOVERED"
+                android:resource="@xml/filter_nfc"/>
+        </activity>
+
+        <activity android:name=".components.NFCOperationsEncKitKat"
+            android:label = "@string/app_title_nfc"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".activities.ReadModeActivity"
+            android:screenOrientation="portrait"
+            android:label="@string/title_login_activity"></activity>
+        <activity
+            android:name=".activities.OCRBReaderActivity"
+            android:screenOrientation="portrait"
+            android:label="@string/title_camera_activity"></activity>
+        <activity
+            android:name=".activities.OCRBResultActivity"
+            android:screenOrientation="portrait"
+            android:label="@string/title_camera_activity"></activity>
+        <activity
+            android:name=".activities.DNIeCANActivity"
+            android:screenOrientation="portrait"
+            android:label="@string/title_dnie_activity"></activity>
+
+        <activity
+            android:name=".activities.DNIeErrorActivity"
+            android:screenOrientation="portrait"></activity>
+        <activity
+            android:name=".activities.DNIeResultActivity"
+            android:screenOrientation="portrait"></activity>
+    </application>
+
+</manifest>

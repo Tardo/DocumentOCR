@@ -1,0 +1,65 @@
+<resources>
+
+    <string name="app_name">Document OCR</string>
+    <string name="app_title_nfc">DNIe Lectura: NFC</string>
+
+    <string name="back">Back</string>
+    <string name="validate">Validate</string>
+
+    <string name="hostname">Hostname</string>
+    <string name="db_name">Database Name</string>
+    <string name="login">Username</string>
+    <string name="password">Password</string>
+    <string name="btn_login_enter">LOGIN</string>
+
+    <string name="request_permission">This sample needs camera permission.</string>
+    <string name="camera_error">This device doesn\'t support Camera2 API.</string>
+
+    <string name="credits">Alexandre Díaz - 2019</string>
+
+    <string name="login_invalid">Invalid Login or Password</string>
+    <string name="init_app_error">Error initializing app :S ...</string>
+
+    <string name="title_camera_activity">Camera OCR</string>
+    <string name="title_login_activity">Login</string>
+    <string name="title_dnie_activity">DNIe NFC</string>
+
+    <string name="op_dgtinit2">Waiting DNIe...</string>
+
+    <string name="result_nok_title">Operation Error</string>
+    <string name="result_nok_description">The operation can\'t be completed successfully</string>
+
+    <string name="info_titl_sujeto">PERSON DATA</string>
+    <string name="info_name">Name</string>
+    <string name="info_surname">Surname</string>
+    <string name="info_numdoc">Num. document</string>
+    <string name="info_caducity">Caducity</string>
+    <string name="info_birth">Birthday</string>
+    <string name="info_birth_place">Birth place.</string>
+    <string name="info_titl_contacto">CONTACT DATA</string>
+    <string name="info_country">Country</string>
+    <string name="info_address">Address</string>
+    <string name="info_provincia">Provincia</string>
+    <string name="info_localidad">Localidad</string>
+    <string name="info_expedition">Expedition</string>
+
+    <string name="op_reinit">Connection lost. Try it again</string>
+    <string name="process_msg_lectura">Reading DNIe...</string>
+    <string name="process_title">DNIe version 3.0</string>
+    <string name="process_msg_dni">Accesing to DNIe</string>
+
+    <string name="title_dni_can">DNIe CAN</string>
+    <string name="op_can_text2">CAN is the indentifier that allows you to establish the connection with the DNIe. Appears on the front of the document</string>
+    <string name="start_read">Start Read</string>
+    <string name="help_can_len">CAN have a length of 6 digits</string>
+
+    <string name="title_dnie_error">DNIe ERROR</string>
+
+    <string name="title_dnie_result">DNIe Info</string>
+
+    <string name="title_ocrb_result">OCR-B Info</string>
+
+    <string name="info_sex">Sex</string>
+    <string name="info_nation">Nation</string>
+
+</resources>

@@ -1,0 +1,1 @@
+include ':app', ':odoojson-rpc', ':bcpkix-jdk15on-1.49', ':bcprov-jdk15on-1.49', ':jpeg2000', ':dniedroid', ':jj2000', ':dnie'
