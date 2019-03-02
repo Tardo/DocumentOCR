@@ -1,4 +1,4 @@
-# DocumentOCR -alpha- ![TravisCI](https://api.travis-ci.org/Tardo/DocumentOCR.svg?branch=master)
+# DocumentOCR -alpha- [![Build Status](https://travis-ci.org/Tardo/DocumentOCR.svg?branch=master)](https://travis-ci.org/Tardo/DocumentOCR)
 
 Android app for create res.partner record reading a DNI or Passport (OCR-B & NFC) with a mobile.
 
