@@ -25,5 +25,7 @@ European Regional Development Fund. A way to make Europe.
 
 ![ccs] ![ue]
 
+https://www.aldahotels.es/ue/
+
 [ccs]: app/src/main/res/drawable/ccs.png "Camara Comercio Santiago de Compostela"
 [ue]: app/src/main/res/drawable/ue.png "Unión Europea"
