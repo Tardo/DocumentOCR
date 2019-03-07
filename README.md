@@ -2,6 +2,8 @@
 
 Android app for create res.partner record reading a DNI or Passport (OCR-B & NFC) with a mobile.
 
+** Supports "hotel_l10n_es" from https://github.com/hootel/hootel/
+
 
 ## ANDROID PROJECT INFO
 
@@ -18,4 +20,10 @@ Android app for create res.partner record reading a DNI or Passport (OCR-B & NFC
 #### TO-DO
   - Use new DG's (when released by police_es)
 
-** Supports "hotel_l10n_es" from https://github.com/hootel/hootel/
+
+European Regional Development Fund. A way to make Europe.
+
+![ccs] ![ue]
+
+[ccs]: app/src/main/res/drawable/ccs.png "Camara Comercio Santiago de Compostela"
+[ue]: app/src/main/res/drawable/ue.png "Unión Europea"
