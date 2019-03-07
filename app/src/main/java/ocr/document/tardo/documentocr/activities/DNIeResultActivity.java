@@ -8,6 +8,7 @@ package ocr.document.tardo.documentocr.activities;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
@@ -39,15 +40,16 @@ import de.tsenger.androsmex.mrtd.DG2;
 import de.tsenger.androsmex.mrtd.DG7;
 import ocr.document.tardo.documentocr.AppMain;
 import ocr.document.tardo.documentocr.R;
+import ocr.document.tardo.documentocr.utils.Constants;
 import ocr.document.tardo.documentocr.utils.DateHelper;
 import ocr.document.tardo.documentocr.utils.jj2000.J2kStreamDecoder;
 
 public class DNIeResultActivity extends Activity implements View.OnClickListener {
 
-    public DG1_Dnie m_dg1;
-    public DG11     m_dg11;
-    private DG2     m_dg2;
-    private DG7     m_dg7;
+    public DG1_Dnie mDG1;
+    public DG11 mDG11;
+    private DG2 mDG2;
+    private DG7 mDG7;
 
     public Bitmap mLoadedImage;
     private Bitmap mLoadedSignature;
@@ -58,146 +60,127 @@ public class DNIeResultActivity extends Activity implements View.OnClickListener
     private HandlerThread mBackgroundThread;
     private Handler mBackgroundHandler;
 
-    private SimpleDateFormat sdFormat = new SimpleDateFormat("yyMMdd");
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Quitamos la barra del título
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_dnie_result);
 
-        // Almacenamos el contexto
-        Context myContext = DNIeResultActivity.this;
-
         Bundle extras = getIntent().getExtras();
-        if(extras != null) {
+        if (extras != null) {
+            byte [] dataDG1	= extras.getByteArray("DGP_DG1");
+            byte [] dataDG2	= extras.getByteArray("DGP_DG2");
+            byte [] dataDG7	= extras.getByteArray("DGP_DG7");
+            byte [] dataDG11 	= extras.getByteArray("DGP_DG11");
 
-            // Recuperamos los datos obtenidos en la lectura anterior
-            byte [] m_dataDG1	= extras.getByteArray("DGP_DG1");
-            byte []  m_dataDG2	= extras.getByteArray("DGP_DG2");
-            byte [] m_dataDG7	= extras.getByteArray("DGP_DG7");
-            byte [] m_dataDG11 	= extras.getByteArray("DGP_DG11");
-
-            // Construimos los objetos Data Group que hayamos leído
-            if(m_dataDG1!=null) m_dg1   = new DG1_Dnie(m_dataDG1);
-            if(m_dataDG2!=null) m_dg2   = new DG2(m_dataDG2);
-            if(m_dataDG7!=null) m_dg7   = new DG7(m_dataDG7);
-            if(m_dataDG11!=null)m_dg11  = new DG11(m_dataDG11);
+            if (dataDG1!=null) mDG1 = new DG1_Dnie(dataDG1);
+            if (dataDG2!=null) mDG2 = new DG2(dataDG2);
+            if (dataDG7!=null) mDG7 = new DG7(dataDG7);
+            if (dataDG11!=null) mDG11 = new DG11(dataDG11);
 
             TextView tvloc;
-            ////////////////////////////////////////////////////////////////////////
-            // Información del DG1, si la tenemos
-            if(m_dg1!=null) {
-                // Nombre
-                tvloc = (TextView) findViewById(R.id.CITIZEN_data_tab_01);
-                tvloc.setText(m_dg1.getName());
-                // Apellidos
-                tvloc = (TextView) findViewById(R.id.CITIZEN_data_tab_02);
-                tvloc.setText(m_dg1.getSurname());
-                // Doc Number
-                tvloc = (TextView) findViewById(R.id.CITIZEN_data_tab_03);
-                tvloc.setText(m_dg1.getDocNumber());
-                // Doc caducity
-                tvloc = (TextView) findViewById(R.id.CITIZEN_data_tab_03_caducity);
-                tvloc.setText(m_dg1.getDateOfExpiry());
-                // Doc emision
-                tvloc = (TextView) findViewById(R.id.CITIZEN_data_tab_10);
+            if (mDG1 != null) {
+                // Name
+                tvloc = findViewById(R.id.CITIZEN_data_tab_01);
+                tvloc.setText(mDG1.getName());
+                // Surname
+                tvloc = findViewById(R.id.CITIZEN_data_tab_02);
+                tvloc.setText(mDG1.getSurname());
+                // Doc. Number
+                tvloc = findViewById(R.id.CITIZEN_data_tab_03);
+                tvloc.setText(mDG1.getDocNumber());
+                // Date of Expiry
+                tvloc = findViewById(R.id.CITIZEN_data_tab_03_caducity);
+                tvloc.setText(mDG1.getDateOfExpiry());
+                // Expedition
+                tvloc = findViewById(R.id.CITIZEN_data_tab_10);
                 try {
                     DateFormat dtFormat = DateFormat.getDateInstance(2);
-                    Date expiryDate = dtFormat.parse(m_dg1.getDateOfExpiry());
-                    Date birthday = dtFormat.parse(m_dg1.getDateOfBirth());
+                    Date expiryDate = dtFormat.parse(mDG1.getDateOfExpiry());
+                    Date birthday = dtFormat.parse(mDG1.getDateOfBirth());
                     Date dnieTest = DateHelper.getExpeditionDate(birthday, expiryDate);
                     String strDate = dtFormat.format(dnieTest);
                     tvloc.setText(strDate);
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
-                // Fecha de nacimiento
-                tvloc = (TextView) findViewById(R.id.CITIZEN_data_tab_07);
-                tvloc.setText(m_dg1.getDateOfBirth());
-                // País de nacimiento
-                tvloc = (TextView) findViewById(R.id.CITIZEN_data_tab_09);
-                tvloc.setText(m_dg1.getNationality().toUpperCase());
+                // Birthday
+                tvloc = findViewById(R.id.CITIZEN_data_tab_07);
+                // Nationality
+                tvloc.setText(mDG1.getDateOfBirth());
+                tvloc = findViewById(R.id.CITIZEN_data_tab_09);
+                tvloc.setText(mDG1.getNationality().toUpperCase());
+                // Gender
+                tvloc = findViewById(R.id.CITIZEN_data_tab_gender);
+                tvloc.setText(mDG1.getSex());
             }
 
-            ////////////////////////////////////////////////////////////////////////
-            // Información del DG11, si la tenemos
-            if(m_dg11!=null) {
-                // Lugar de nacimiento
-                tvloc = (TextView) findViewById(R.id.CITIZEN_data_tab_08);
-                tvloc.setText(m_dg11.getBirthPlace().replace("<", " (") + ")");
+            if (mDG11 != null) {
+                // Birth Place
+                tvloc = findViewById(R.id.CITIZEN_data_tab_08);
+                tvloc.setText(mDG11.getBirthPlace().replace("<", " (") + ")");
                 // DNIe Number
-                tvloc = (TextView) findViewById(R.id.CITIZEN_data_tab_03);
-                tvloc.setText(m_dg11.getPersonalNumber());
+                tvloc = findViewById(R.id.CITIZEN_data_tab_03);
+                tvloc.setText(mDG11.getPersonalNumber());
                 try {
-                    String[] address = m_dg11.getAddress(0).split("<");
-                    // Dirección actual
-                    tvloc = (TextView) findViewById(R.id.CITIZEN_data_tab_04);
+                    String[] address = mDG11.getAddress(0).split("<");
+                    // Address
+                    tvloc = findViewById(R.id.CITIZEN_data_tab_04);
                     tvloc.setText(address[0]);
 
-                    // Provincia
+                    // Province
                     if (address.length >= 3) {
-                        tvloc = (TextView) findViewById(R.id.CITIZEN_data_tab_05);
-                        //tvloc.setText(m_dg11.getAddress(DG11.ADDR_PROVINCIA));
+                        tvloc = findViewById(R.id.CITIZEN_data_tab_05);
+                        //tvloc.setText(mDG11.getAddress(DG11.ADDR_PROVINCIA));
                         tvloc.setText(address[2]);
                     }
-                    // Localidad
-                    tvloc = (TextView) findViewById(R.id.CITIZEN_data_tab_06);
+                    // Location
+                    tvloc = findViewById(R.id.CITIZEN_data_tab_06);
                     tvloc.setText(address[1]);
                 } catch (ArrayIndexOutOfBoundsException e) {
                     e.printStackTrace();
                 }
             }
 
-            ////////////////////////////////////////////////////////////////////////
-            // Información del DG2 (foto), si la tenemos
-            ImageView ivFoto = (ImageView) findViewById(R.id.CITIZEN_data_tab_00);
-            if(m_dataDG2!=null){
+            // Photo
+            ImageView ivFoto = findViewById(R.id.CITIZEN_data_tab_00);
+            if (dataDG2 != null) {
                 try {
-                    // Parseo de la foto en formato JPEG-2000
-                    byte [] imagen = m_dg2.getImageBytes();
+                    // JPEG-2000 Parse
+                    byte [] imagen = mDG2.getImageBytes();
                     J2kStreamDecoder j2k = new J2kStreamDecoder();
                     ByteArrayInputStream bis = new ByteArrayInputStream(imagen);
                     mLoadedImage = j2k.decode(bis);
-                }catch(Exception e)
-                {
+                } catch(Exception e) {
                     e.printStackTrace();
                 }
             }
-
-            // Mostramos la foto si hemos podido decodificarla
-            if(mLoadedImage !=null)
+            if (mLoadedImage != null)
                 ivFoto.setImageBitmap(mLoadedImage);
             else
                 ivFoto.setImageResource(R.drawable.noface);
 
-            ////////////////////////////////////////////////////////////////////////
-            // Información del DG7, si la tenemos
-            ImageView ivFirma = (ImageView) findViewById(R.id.CITIZEN_data_tab_00_SIGNATURE);
-            if(m_dataDG7!=null){
+            // Signature
+            ImageView ivFirma = findViewById(R.id.CITIZEN_data_tab_00_SIGNATURE);
+            if (dataDG7 != null) {
                 try {
-                    // Parseo de la firma en formato JPEG-2000
-                    byte [] imagen = m_dg7.getImageBytes();
+                    // JPEG-2000 Parse
+                    byte [] imagen = mDG7.getImageBytes();
                     J2kStreamDecoder j2k = new J2kStreamDecoder();
                     ByteArrayInputStream bis = new ByteArrayInputStream(imagen);
                     mLoadedSignature = j2k.decode(bis);
-                }catch(Exception e)
-                {
+                } catch(Exception e) {
                     e.printStackTrace();
                 }
-
-                // Mostramos la firma si hemos podido decodificarla
-                if(mLoadedSignature !=null) {
-                    // Mostramos la firma
+                if (mLoadedSignature != null) {
                     ivFirma.setVisibility(ImageView.VISIBLE);
                     ivFirma.setImageBitmap(mLoadedSignature);
                 }
             }
         }
 
-        ///////////////////////////////////////////////////////////////////////////////////
         mButtonBack = findViewById(R.id.btnBack);
         mButtonStartRead = findViewById(R.id.btnValidate);
 
@@ -211,7 +194,8 @@ public class DNIeResultActivity extends Activity implements View.OnClickListener
             Intent intent = new Intent(DNIeResultActivity.this, ReadModeActivity.class);
             startActivity(intent);
             finish();
-        } else if (v.getId() == R.id.btnValidate) {
+        }
+        else if (v.getId() == R.id.btnValidate) {
             final Button btnValidate = (Button)v;
             btnValidate.setEnabled(false);
             btnValidate.setText("Sending...");
@@ -260,31 +244,35 @@ public class DNIeResultActivity extends Activity implements View.OnClickListener
         }
     }
 
+
+
     private static class RPCCreatePartner implements Runnable {
 
         final JSONRPCClientOdoo mClient;
-        final private DNIeResultActivity mActivity;
+        final private DNIeResultActivity ocrbResultActivity;
         private int mOperationResult;
 
 
         RPCCreatePartner(DNIeResultActivity activity, JSONRPCClientOdoo client) {
             mClient = client;
-            mActivity = activity;
+            ocrbResultActivity = activity;
         }
 
 
         @Override
         public void run() {
-            String name = mActivity.m_dg1.getSurname() + "  " + mActivity.m_dg1.getName();
-            String docNumber = mActivity.m_dg11.getPersonalNumber();
-            String sex = mActivity.m_dg1.getSex();
-            String nation = mActivity.m_dg1.getNationality();
+            final SharedPreferences Settings = ocrbResultActivity.getSharedPreferences(Constants.SHARED_PREFS_USER_INFO, Context.MODE_PRIVATE);
+            final Boolean hasHotelL10N = Settings.getBoolean("HasHotelL10N", false);
+            String name = ocrbResultActivity.mDG1.getSurname() + "  " + ocrbResultActivity.mDG1.getName();
+            String docNumber = ocrbResultActivity.mDG11.getPersonalNumber();
+            String gender = ocrbResultActivity.mDG1.getSex();
+            String nation = ocrbResultActivity.mDG1.getNationality();
             Date expiryDate = null;
             Date birthday = null;
             try {
                 DateFormat dtDNIFormat = DateFormat.getDateInstance(2);
-                expiryDate = dtDNIFormat.parse(mActivity.m_dg1.getDateOfExpiry());
-                birthday = dtDNIFormat.parse(mActivity.m_dg1.getDateOfBirth());
+                expiryDate = dtDNIFormat.parse(ocrbResultActivity.mDG1.getDateOfExpiry());
+                birthday = dtDNIFormat.parse(ocrbResultActivity.mDG1.getDateOfBirth());
             } catch (ParseException e) {
                 e.printStackTrace();
             }
@@ -296,9 +284,9 @@ public class DNIeResultActivity extends Activity implements View.OnClickListener
 
             try {
                 Integer codeIneId = 0;
-                String[] address = mActivity.m_dg11.getAddress(0).split("<");
-                if (address.length == 3) {
-                    JSONArray searchResult = mClient.callSearch("code.ine", String.format("[['name', '=ilike', '%s%c']]", mActivity.m_dg11.getAddress(0).split("<")[2], '%'), "['id', 'code', 'display_name']");
+                String[] address = ocrbResultActivity.mDG11.getAddress(0).split("<");
+                if (hasHotelL10N && address.length == 3) {
+                    JSONArray searchResult = mClient.callSearch("code.ine", String.format("[['name', '=ilike', '%s%c']]", ocrbResultActivity.mDG11.getAddress(0).split("<")[2], '%'), "['id', 'code', 'display_name']");
                     if (null != searchResult) {
                         codeIneId = searchResult.getJSONObject(0).getInt("id");
                     }
@@ -306,22 +294,31 @@ public class DNIeResultActivity extends Activity implements View.OnClickListener
 
 
                 ByteArrayOutputStream byteArrayOS = new ByteArrayOutputStream();
-                mActivity.mLoadedImage.compress(Bitmap.CompressFormat.JPEG, 90, byteArrayOS);
+                ocrbResultActivity.mLoadedImage.compress(Bitmap.CompressFormat.JPEG, 90, byteArrayOS);
                 String encodedPhoto = Base64.encodeToString(byteArrayOS.toByteArray(), Base64.NO_WRAP);
 
-
-                String values = String.format("{'name': '%s', 'image': '%s', 'document_number': '%s', 'birthdate_date': '%s', 'gender': '%s', 'document_expedition_date': '%s', 'code_ine_id': %d, comment: 'Nation: %s'}", name, encodedPhoto, docNumber, strBirthDate, sex, strExpDate, codeIneId, nation);
-                mOperationResult = mClient.callCreate("res.partner", values);
+                String createValues;
+                // Hotel l10 Support
+                if (hasHotelL10N) {
+                    createValues = String.format(
+                            "{'name': '%s', 'image': '%s', 'document_number': '%s', 'birthdate_date': '%s', 'gender': '%s', 'document_expedition_date': '%s', 'code_ine_id': %d, comment: 'Nation: %s'}",
+                            name, encodedPhoto, docNumber, strBirthDate, gender, strExpDate, codeIneId, nation);
+                } else {
+                    createValues = String.format(
+                            "{'image': '%s', 'name': '%s', 'vat': '%s', comment: 'Birthday: %s\nGender: %s\nNation: %s\nDocument Expedition Date: %s'}",
+                            name, docNumber, strBirthDate, gender, nation, strExpDate);
+                }
+                mOperationResult = mClient.callCreate("res.partner", createValues);
 
                 if (mOperationResult != JSONRPCClientOdoo.ERROR) {
-                    mActivity.showToast("Partner Successfully Created!");
-                    Intent intent = new Intent(mActivity, ReadModeActivity.class);
-                    mActivity.startActivity(intent);
-                    mActivity.finish();
+                    ocrbResultActivity.showToast(ocrbResultActivity.getApplicationContext().getString(R.string.jsonrpc_partner_created));
+                    Intent intent = new Intent(ocrbResultActivity, ReadModeActivity.class);
+                    ocrbResultActivity.startActivity(intent);
+                    ocrbResultActivity.finish();
                 } else {
 
-                    mActivity.showToast("Error! Can't create new partner :/ Please, try again.");
-                    final Button btnValidate = mActivity.findViewById(R.id.btnValidate);
+                    ocrbResultActivity.showToast(ocrbResultActivity.getApplicationContext().getString(R.string.jsonrpc_partner_error));
+                    final Button btnValidate = ocrbResultActivity.findViewById(R.id.btnValidate);
                     btnValidate.setText(R.string.validate);
                     btnValidate.setEnabled(true);
                 }

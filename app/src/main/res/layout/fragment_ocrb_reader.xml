@@ -13,6 +13,11 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" >
 
+    <SurfaceView
+        android:id="@+id/surfaceView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
     <LinearLayout
         android:id="@+id/fg_container_visor"
         android:layout_width="match_parent"

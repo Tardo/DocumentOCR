@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-	android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
 	android:layout_height="match_parent"
-	android:background="@drawable/background_odoo"
+    android:background="@color/colorBackground"
 	android:orientation="vertical">
 
 	<TextView
@@ -13,6 +14,8 @@
 		android:scaleType="centerCrop"
 		android:text="@string/title_ocrb_result"
 		android:textAlignment="center"
+        android:layout_marginTop="15dp"
+        android:layout_marginBottom="50dp"
 		android:textColor="@color/colorTextPrimary"
 		android:textSize="36sp" />
 
@@ -21,27 +24,40 @@
 		android:layout_height="match_parent"
 		android:orientation="vertical">
 
-		<TableLayout
+        <ImageView
+            android:id="@+id/imgOCR"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+			android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="10dp"
+            app:srcCompat="@drawable/alert_dialog_icon" />
+
+        <TableLayout
 			android:id="@+id/data_table"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:layout_alignParentStart="true"
 			android:layout_alignParentTop="true"
 			android:padding="20dp"
+            android:background="@drawable/background_odoo"
 			android:stretchColumns="1">
 
 			<TableRow
 				android:layout_width="match_parent"
 				android:layout_height="match_parent">
 
-				<TextView
-					android:layout_width="match_parent"
-					android:layout_height="match_parent"
-					android:layout_span="2"
-					android:gravity="left"
-					android:padding="1dp"
-					android:text="@string/info_titl_sujeto"
-					android:textStyle="bold" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_span="2"
+                    android:gravity="left"
+                    android:text="@string/info_titl_sujeto"
+                    android:textColor="@android:color/black"
+                    android:drawablePadding="5sp"
+                    android:drawableLeft="@drawable/ic_perm_identity_black_24dp"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
 			</TableRow>
 
 			<TableRow
@@ -203,13 +219,13 @@
 				android:layout_height="match_parent">
 
 				<TextView
-					android:id="@+id/CITIZEN_data_tab_sex_title"
+					android:id="@+id/CITIZEN_data_tab_genre_title"
 					android:layout_width="match_parent"
 					android:layout_height="match_parent"
 					android:layout_marginRight="3dp"
 					android:gravity="left"
 					android:padding="1dp"
-					android:text="@string/info_sex"
+					android:text="@string/info_genre"
 					android:textStyle="bold" />
 
 				<TextView

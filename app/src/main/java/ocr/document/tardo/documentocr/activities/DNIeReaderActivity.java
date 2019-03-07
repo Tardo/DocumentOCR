@@ -25,15 +25,13 @@ public class DNIeReaderActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
-        // Quitamos la barra del título
+
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);  
         setContentView(R.layout.activity_dnie_reader);
     	    	    	    	             
-        // Si no hemos abierto correctamente, salimos
-        if(!((AppMain)getApplicationContext()).isStarted())
+        // If not open properly, go out
+        if (!((AppMain)getApplicationContext()).isStarted())
         {
-        	// Desactivamos la activity ENABLE = false
         	PackageManager packman = getApplicationContext().getPackageManager();
         	ComponentName componentName = new ComponentName(getApplicationContext(), NFCOperationsEnc.class);
         	packman.setComponentEnabledSetting(componentName, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, 0);
@@ -43,20 +41,15 @@ public class DNIeReaderActivity extends Activity {
 	     	
         	return;
         }
-        
-		// Activamos la activity ENABLE = true
+
     	PackageManager packman = getApplicationContext().getPackageManager();
     	ComponentName componentName = new ComponentName(getApplicationContext(), NFCOperationsEnc.class);
     	packman.setComponentEnabledSetting(componentName, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
 
-
-		///////////////////////////////////////////////////////////////////////////////////
-		// Botón 1: Volver
 		final Button btnBack = (Button)findViewById(R.id.btnBack);
 		btnBack.setOnClickListener(new OnClickListener()
 		{
 			public void onClick(View v) {
-			// Volvemos a la activity anterior
 			onBackPressed();
 			finish();
 			}
@@ -67,8 +60,7 @@ public class DNIeReaderActivity extends Activity {
 	protected void onStart() {
 		// TODO Auto-generated method stub
 		super.onStart();
-		
-		// Activamos la activity ENABLE = true
+
     	PackageManager packman = getApplicationContext().getPackageManager();
     	ComponentName componentName = new ComponentName(getApplicationContext(), NFCOperationsEnc.class);
     	packman.setComponentEnabledSetting(componentName, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
@@ -78,21 +70,19 @@ public class DNIeReaderActivity extends Activity {
 	protected void onStop() {
 		// TODO Auto-generated method stub
 		super.onStop();
-		
-		// Desactivamos la activity ENABLE = false
+
     	PackageManager packman = getApplicationContext().getPackageManager();
     	ComponentName componentName = new ComponentName(getApplicationContext(), NFCOperationsEnc.class);
-    	packman.setComponentEnabledSetting(componentName, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);//*/
+    	packman.setComponentEnabledSetting(componentName, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
 	}
     
 	@Override
 	protected void onDestroy() {
 		// TODO Auto-generated method stub
 		super.onDestroy();
-		
-		// Desactivamos la activity ENABLE = false
+
     	PackageManager packman = getApplicationContext().getPackageManager();
     	ComponentName componentName = new ComponentName(getApplicationContext(), NFCOperationsEnc.class);
-    	packman.setComponentEnabledSetting(componentName, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);//*/
+    	packman.setComponentEnabledSetting(componentName, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
 	}
 }

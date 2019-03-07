@@ -13,9 +13,16 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.PixelFormat;
 import android.graphics.Point;
+import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
@@ -25,7 +32,6 @@ import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
-import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
@@ -47,12 +53,16 @@ import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.LayoutInflater;
 import android.view.Surface;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import java.io.File;
+import com.googlecode.tesseract.android.TessBaseAPI;
+
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -61,12 +71,13 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+import ocr.document.tardo.documentocr.AppMain;
 import ocr.document.tardo.documentocr.R;
 import ocr.document.tardo.documentocr.activities.OCRBReaderActivity;
 import ocr.document.tardo.documentocr.views.AutoFitTextureView;
 
 public class OCRBReaderFragment extends Fragment
-        implements View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback {
+        implements ActivityCompat.OnRequestPermissionsResultCallback {
 
 
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
@@ -76,14 +87,11 @@ public class OCRBReaderFragment extends Fragment
         ORIENTATIONS.append(Surface.ROTATION_180, 270);
         ORIENTATIONS.append(Surface.ROTATION_270, 180);
     }
+    private static final int VIBRATE_TIME_MS = 500;
     private static final int REQUEST_CAMERA_PERMISSION = 1;
     private static final String FRAGMENT_DIALOG = "dialog";
     private static final String TAG = "OCRBReaderFragment";
     private static final int STATE_PREVIEW = 0;
-    private static final int STATE_WAITING_LOCK = 1;
-    private static final int STATE_WAITING_PRECAPTURE = 2;
-    private static final int STATE_WAITING_NON_PRECAPTURE = 3;
-    private static final int STATE_PICTURE_TAKEN = 4;
     private static final int MAX_PREVIEW_WIDTH = 1920;
     private static final int MAX_PREVIEW_HEIGHT = 1080;
     private final TextureView.SurfaceTextureListener mSurfaceTextureListener
@@ -92,6 +100,7 @@ public class OCRBReaderFragment extends Fragment
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture texture, int width, int height) {
             openCamera(width, height);
+            Log.v(TAG, "SURFACE ESTA QUE PA");
         }
 
         @Override
@@ -116,6 +125,7 @@ public class OCRBReaderFragment extends Fragment
     private CameraDevice mCameraDevice;
     private Size mPreviewSize;
     private Drawable mVisor;
+    private SurfaceView mSurfaceView;
 
 
     private final CameraDevice.StateCallback mStateCallback = new CameraDevice.StateCallback() {
@@ -152,19 +162,6 @@ public class OCRBReaderFragment extends Fragment
     private HandlerThread mBackgroundThread;
     private Handler mBackgroundHandler;
     private ImageReader mImageReader;
-    private File mFile;
-
-    private final ImageReader.OnImageAvailableListener mOnImageAvailableListener
-            = new ImageReader.OnImageAvailableListener() {
-
-        @Override
-        public void onImageAvailable(ImageReader reader) {
-            /*Drawable visor = getResources().getDrawable(R.drawable.rect_dni);
-            Rect cropArea = new Rect(0, 0, visor.getIntrinsicWidth(), visor.getIntrinsicHeight());
-            new Bitmap2Text(mTextureView.getBitmap(), cropArea, mFile, (OCRBReaderFragment) getFragmentManager().findFragmentById(R.id.container)).run();*/
-        }
-
-    };
 
     private CaptureRequest.Builder mPreviewRequestBuilder;
     private CaptureRequest mPreviewRequest;
@@ -172,7 +169,7 @@ public class OCRBReaderFragment extends Fragment
     private Semaphore mCameraOpenCloseLock = new Semaphore(1);
     private boolean mFlashSupported;
     private int mSensorOrientation;
-    private OCRTask mOCRTask = new OCRTask();
+    private OCRTaskInfo mOCRTaskInfo = new OCRTaskInfo();
     private Boolean mOCRReaded;
 
     private CameraCaptureSession.CaptureCallback mCaptureCallback
@@ -181,13 +178,14 @@ public class OCRBReaderFragment extends Fragment
         private void process(CaptureResult result) {
             switch (mState) {
                 case STATE_PREVIEW: {
-                    if (!mOCRTask.mState && !mOCRTask.mRunning) {
+                    Rect cropArea = new Rect(0, 0, mTextureView.getWidth(), mVisor.getIntrinsicHeight());
+                    if (null == mOCRTaskInfo.mOCRInfo && !mOCRTaskInfo.mRunning) {
                         mOCRReaded = false;
-                        Rect cropArea = new Rect(0, 0, mTextureView.getWidth(), mVisor.getIntrinsicHeight());
-                        mBackgroundHandler.postAtFrontOfQueue(new Bitmap2Text(mTextureView.getBitmap(), cropArea, mFile, (OCRBReaderFragment) getFragmentManager().findFragmentById(R.id.container), mOCRTask));
-                        mOCRTask.mRunning = true;
-                    } else if (mOCRTask.mState && !mOCRReaded) {
-                        vibrate(500);
+                        final TessBaseAPI tessApi = ((AppMain)getActivity().getApplication()).getTessApi();
+                        mBackgroundHandler.postAtFrontOfQueue(new OCRTask(mTextureView.getBitmap(), cropArea, tessApi, mOCRTaskInfo));
+                        mOCRTaskInfo.mRunning = true;
+                    } else if (null != mOCRTaskInfo.mOCRInfo && !mOCRReaded) {
+                        vibrate(VIBRATE_TIME_MS);
                         mBackgroundHandler.removeCallbacksAndMessages(null);
                         mOCRReaded = true;
 
@@ -195,48 +193,39 @@ public class OCRBReaderFragment extends Fragment
                             @Override
                             public void run() {
                                 OCRBReaderActivity activity = (OCRBReaderActivity)getActivity();
-                                activity.printOCRResults(mOCRTask);
+                                activity.printOCRResults(mOCRTaskInfo.mOCRInfo, mOCRTaskInfo.mOCRImage, mOCRTaskInfo.mOCRBoxes);
                             }
                         });
                     }
-                    break;
-                }
-                case STATE_WAITING_LOCK: {
-                    Integer afState = result.get(CaptureResult.CONTROL_AF_STATE);
-                    if (afState == null) {
-                        mState = STATE_PICTURE_TAKEN;
-                        captureStillPicture();
-                    } else if (CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED == afState ||
-                            CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED == afState) {
-                        // CONTROL_AE_STATE can be null on some devices
-                        Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
-                        if (aeState == null ||
-                                aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED) {
-                            mState = STATE_PICTURE_TAKEN;
-                            captureStillPicture();
-                        } else {
-                            runPrecaptureSequence();
+
+                    // Draw recognized character boxes
+                    if (null != mOCRTaskInfo.mOCRBoxes && !mOCRTaskInfo.mOCRBoxes.isEmpty()) {
+                        float centerW = mTextureView.getBitmap().getWidth()/2 - cropArea.width()/2;
+                        float centerH = mTextureView.getBitmap().getHeight()/2 - cropArea.height()/2;
+                        int offsetX = (int)(centerW);
+                        int offsetY = (int)(centerH);
+
+                        Paint paintRect = new Paint(Paint.ANTI_ALIAS_FLAG);
+                        paintRect.setColor(Color.WHITE);
+                        paintRect.setAlpha(200);
+
+                        SurfaceHolder surfaceHolder = mSurfaceView.getHolder();
+                        surfaceHolder.setFormat(PixelFormat.TRANSPARENT);
+                        Canvas surfaceCanvas = surfaceHolder.lockCanvas();
+                        surfaceCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+                        final String[] boxes = mOCRTaskInfo.mOCRBoxes.split(System.getProperty("line.separator"));
+                        for (String line : boxes) {
+                            String[] values = line.split(" ");
+                            Integer x = offsetX + Integer.parseInt(values[1]);
+                            Integer y = offsetY + (cropArea.height()-Integer.parseInt(values[2]));
+                            Integer w = offsetX + Integer.parseInt(values[3]);
+                            Integer h = offsetY + (cropArea.height()-Integer.parseInt(values[4]));
+                            surfaceCanvas.drawRect(new RectF(x, y, w, h), paintRect);
                         }
+
+                        surfaceHolder.unlockCanvasAndPost(surfaceCanvas);
                     }
-                    break;
-                }
-                case STATE_WAITING_PRECAPTURE: {
-                    // CONTROL_AE_STATE can be null on some devices
-                    Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
-                    if (aeState == null ||
-                            aeState == CaptureResult.CONTROL_AE_STATE_PRECAPTURE ||
-                            aeState == CaptureRequest.CONTROL_AE_STATE_FLASH_REQUIRED) {
-                        mState = STATE_WAITING_NON_PRECAPTURE;
-                    }
-                    break;
-                }
-                case STATE_WAITING_NON_PRECAPTURE: {
-                    // CONTROL_AE_STATE can be null on some devices
-                    Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
-                    if (aeState == null || aeState != CaptureResult.CONTROL_AE_STATE_PRECAPTURE) {
-                        mState = STATE_PICTURE_TAKEN;
-                        captureStillPicture();
-                    }
+
                     break;
                 }
             }
@@ -274,7 +263,6 @@ public class OCRBReaderFragment extends Fragment
     public void vibrate(final int milis) {
 
         Vibrator v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
-        // Vibrate for 500 milliseconds
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             v.vibrate(VibrationEffect.createOneShot(milis, VibrationEffect.DEFAULT_AMPLITUDE));
         } else {
@@ -330,14 +318,15 @@ public class OCRBReaderFragment extends Fragment
     @Override
     public void onViewCreated(final View view, Bundle savedInstanceState) {
         mTextureView = view.findViewById(R.id.texture);
-        mTextureView.setOnClickListener(this);
         mVisor = getResources().getDrawable(R.drawable.rect_dni);
+
+        mSurfaceView = view.findViewById(R.id.surfaceView);
+        mSurfaceView.setZOrderOnTop(true);
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mFile = new File(getActivity().getExternalFilesDir(null), "pic.jpg");
     }
 
     @Override
@@ -413,8 +402,6 @@ public class OCRBReaderFragment extends Fragment
 
                 mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(),
                         ImageFormat.JPEG, /*maxImages*/2);
-                mImageReader.setOnImageAvailableListener(
-                        mOnImageAvailableListener, mBackgroundHandler);
 
                 // Find out if we need to swap dimension to get the preview size relative to sensor
                 // coordinate.
@@ -636,126 +623,6 @@ public class OCRBReaderFragment extends Fragment
             matrix.postRotate(180, centerX, centerY);
         }
         mTextureView.setTransform(matrix);
-    }
-
-
-    private void takePicture() {
-        lockFocus();
-    }
-
-    private void lockFocus() {
-        try {
-            // This is how to tell the camera to lock focus.
-            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
-                    CameraMetadata.CONTROL_AF_TRIGGER_START);
-            // Tell #mCaptureCallback to wait for the lock.
-            mState = STATE_WAITING_LOCK;
-            mCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback,
-                    mBackgroundHandler);
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void runPrecaptureSequence() {
-        try {
-            // This is how to tell the camera to trigger.
-            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
-                    CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_START);
-            // Tell #mCaptureCallback to wait for the precapture sequence to be set.
-            mState = STATE_WAITING_PRECAPTURE;
-            mCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback,
-                    mBackgroundHandler);
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void captureStillPicture() {
-        try {
-            final Activity activity = getActivity();
-            if (null == activity || null == mCameraDevice) {
-                return;
-            }
-            // This is the CaptureRequest.Builder that we use to take a picture.
-            final CaptureRequest.Builder captureBuilder =
-                    mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
-            captureBuilder.addTarget(mImageReader.getSurface());
-
-            // Use the same AE and AF modes as the preview.
-            captureBuilder.set(CaptureRequest.CONTROL_AF_MODE,
-                    CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-            setAutoFlash(captureBuilder);
-
-            // Orientation
-            int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
-            captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, getOrientation(rotation));
-
-            CameraCaptureSession.CaptureCallback CaptureCallback
-                    = new CameraCaptureSession.CaptureCallback() {
-
-                @Override
-                public void onCaptureCompleted(@NonNull CameraCaptureSession session,
-                                               @NonNull CaptureRequest request,
-                                               @NonNull TotalCaptureResult result) {
-                    showToast("Saved: " + mFile);
-                    Log.d(TAG, mFile.toString());
-                    unlockFocus();
-                }
-            };
-
-            mCaptureSession.stopRepeating();
-            mCaptureSession.abortCaptures();
-            mCaptureSession.capture(captureBuilder.build(), CaptureCallback, null);
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private int getOrientation(int rotation) {
-        // Sensor orientation is 90 for most devices, or 270 for some devices (eg. Nexus 5X)
-        // We have to take that into account and rotate JPEG properly.
-        // For devices with orientation of 90, we simply return our mapping from ORIENTATIONS.
-        // For devices with orientation of 270, we need to rotate the JPEG 180 degrees.
-        return (ORIENTATIONS.get(rotation) + mSensorOrientation + 270) % 360;
-    }
-
-    private void unlockFocus() {
-        try {
-            // Reset the auto-focus trigger
-            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
-                    CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
-            setAutoFlash(mPreviewRequestBuilder);
-            mCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback,
-                    mBackgroundHandler);
-            // After this, the camera will go back to the normal state of preview.
-            mState = STATE_PREVIEW;
-            mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback,
-                    mBackgroundHandler);
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.texture: {
-                //takePicture();
-                mOCRTask = new OCRTask();
-                break;
-            }
-            /*case R.id.info: {
-                Activity activity = getActivity();
-                if (null != activity) {
-                    new AlertDialog.Builder(activity)
-                            .setMessage(R.string.intro_message)
-                            .setPositiveButton(android.R.string.ok, null)
-                            .show();
-                }
-                break;
-            }*/
-        }
     }
 
     private void setAutoFlash(CaptureRequest.Builder requestBuilder) {

@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.nfc.NfcAdapter;
 import android.nfc.NfcAdapter.ReaderCallback;
@@ -42,54 +41,47 @@ import ocr.document.tardo.documentocr.activities.DNIeResultActivity;
 import ocr.document.tardo.documentocr.activities.ReadModeActivity;
 
 @SuppressLint("NewApi")
-public class NFCOperationsEncKitKat extends Activity implements ReaderCallback
-{
+public class NFCOperationsEncKitKat extends Activity implements ReaderCallback {
 	// NFC Adapter
-    static private NfcAdapter myNfcAdapter = null;
+    static private NfcAdapter mNfcAdapter = null;
 
-    // Gestión del CAN
-    private CANSpecDO canDnie;
-    private CANSpecDOStore cansDO;
-    private Activity myActivity;
+    // CAN Management
+    private CANSpecDO mCANDnie;
+    private CANSpecDOStore mCANDOS;
+    private Activity mActivity;
 
-    private boolean m_readDg1;
-    private boolean m_readDg2;
-    private boolean m_readDg7;
-    private boolean m_readDg11;
-    private boolean m_readDg13;
+    // Variables member of files available in the document
+    private boolean mExistDG1;
+    private boolean mExistDG2;
+    private boolean mExistDG7;
+    private boolean mExistDG11;
 
-    // Variables miembro de los ficheros disponibles en el documento
-    private boolean m_existDg1;
-    private boolean m_existDg2;
-    private boolean m_existDg7;
-    private boolean m_existDg11;
+    private DG1_Dnie mDG1;
+    private DG11 mDG11;
+    private DG2 mDG2;
+    private DG7 mDG7;
 
-    private DG1_Dnie    m_dg1;
-    private DG11        m_dg11;
-    private DG2         m_dg2;
-    private DG7         m_dg7;
+    private boolean mReaderModeON = false;
 
-    private boolean readerModeON = false;
+    private DnieKeyStore mKSUserMrtd = null;
 
-    private DnieKeyStore m_ksUserMrtd = null;
+    final Handler mHandler = new Handler();
+    private ProgressDialog mProgressBar;
 
-    final Handler myHandler = new Handler();
-    private ProgressDialog progressBar;
+	private Tag mTagFromIntent =null;
 
-	private Tag tagFromIntent=null;
+    Typeface mFontType;
+    private String mTextProcessDlg;
+    private String mTextResultPage;
 
-    Typeface fontType;
-    private String textoProcessDlg;
-    private String textoResultPage;
-
-    private boolean mForzamosReinicio  = true;
+    private boolean mForceReset = true;
 
     final Runnable updateStatus = new Runnable() {
         public void run()
         {
-            progressBar.setMessage(textoProcessDlg);
-            if(!progressBar.isShowing())
-                progressBar.show();
+            mProgressBar.setMessage(mTextProcessDlg);
+            if(!mProgressBar.isShowing())
+                mProgressBar.show();
         }
     };
 
@@ -97,8 +89,8 @@ public class NFCOperationsEncKitKat extends Activity implements ReaderCallback
     {
         public void run()
         {
-            textoResultPage ="";
-            textoResultPage ="";
+            mTextResultPage ="";
+            mTextResultPage ="";
             ((TextView)findViewById(R.id.textResult)).setText(R.string.op_reinit);
             findViewById(R.id.textResult).setVisibility(TextView.VISIBLE);
             ((ImageView)findViewById(R.id.imgResult)).setImageResource(R.drawable.btn_aproxdnie);
@@ -111,8 +103,8 @@ public class NFCOperationsEncKitKat extends Activity implements ReaderCallback
     {
         public void run()
         {
-            textoResultPage ="";
-            textoResultPage ="";
+            mTextResultPage ="";
+            mTextResultPage ="";
             ((TextView)findViewById(R.id.textResult)).setText(R.string.process_msg_lectura);
             findViewById(R.id.textResult).setVisibility(TextView.VISIBLE);
             ((ImageView)findViewById(R.id.imgResult)).setImageResource(R.drawable.btn_aproxdnie);
@@ -121,9 +113,7 @@ public class NFCOperationsEncKitKat extends Activity implements ReaderCallback
         }
     };
 
-    public void HandleError(String strError)
-    {
-        // Pasamos los datos a la activity correspondiente
+    public void HandleError(String strError) {
         Bundle b = new Bundle();
         b.putString("ERROR_MSG", strError);
 
@@ -134,23 +124,22 @@ public class NFCOperationsEncKitKat extends Activity implements ReaderCallback
 
     public class MyTaskDG11 extends AsyncTask<Void, Integer, Void> {
 
-        private boolean bHayErrores = false;
+        private boolean mHasErrors = false;
 
         @Override
-        protected void onPreExecute()
-        {
-            // Limpiamos controles
-            myHandler.post(newRead);
+        protected void onPreExecute() {
+            // Clean Controls
+            mHandler.post(newRead);
 
-            // Preparamos el reinicio automático por si fallase la lectura
-            mForzamosReinicio = true;
+            // Prepare auto-reset for possible reading failure
+            mForceReset = true;
 
-            // Lanzamos el diálogo con el progreso
-            progressBar.setIndeterminate(true);
-            progressBar.setCancelable(false);
-            progressBar.setTitle(R.string.process_title);
-            progressBar.setMessage(getApplicationContext().getString(R.string.process_msg_dni));
-            textoProcessDlg=getApplicationContext().getString(R.string.process_msg_dni);
+            // Show Dialog Process
+            mProgressBar.setIndeterminate(true);
+            mProgressBar.setCancelable(false);
+            mProgressBar.setTitle(R.string.process_title);
+            mProgressBar.setMessage(getApplicationContext().getString(R.string.process_msg_dni));
+            mTextProcessDlg = getApplicationContext().getString(R.string.process_msg_dni);
         }
 
         @Override
@@ -158,41 +147,35 @@ public class NFCOperationsEncKitKat extends Activity implements ReaderCallback
             // TODO Auto-generated method stub
             super.onProgressUpdate(values);
 
-            progressBar.setMessage(textoProcessDlg);
-            if(!progressBar.isShowing())
-                progressBar.show();
+            mProgressBar.setMessage(mTextProcessDlg);
+            if(!mProgressBar.isShowing())
+                mProgressBar.show();
         }
 
         @Override
         protected Void doInBackground(Void... params) {
 
-            //////////////////////////////////////////////////////////////////////////////////
-            // PASO 0: Leemos los Data Groups con los datos públicos del documento
-            //
             try {
-                // Lanzamos la operación de lectura del DNIe
-                CargarDGs();
+                // Start NFC Read Operation
+                LoadDGs();
 
-                mForzamosReinicio = false;
+                mForceReset = false;
             }
-            catch (PaceException e)
-            {
-                // Si el código CAN es incorrecto, mostramos el error.
-                textoResultPage     = e.getMessage();
-                mForzamosReinicio   = false;
-                bHayErrores         = true;
+            catch (PaceException e) {
+                // Invalid CAN
+                mTextResultPage = e.getMessage();
+                mForceReset = false;
+                mHasErrors = true;
 
                 return null;
             }
-            catch (Exception e)
-            {
-                textoResultPage = "Ocurrió un error durante la lectura de los DGs.";
-                if (e.getMessage()!=null)
-                {
+            catch (Exception e) {
+                mTextResultPage = getApplicationContext().getString(R.string.nfc_error_read);
+                if (e.getMessage()!=null) {
                     if (e.getMessage().contains("lost"))
-                        textoResultPage = "Error de comunicación. Se ha perdido la conexión con el DNIe.";
+                        mTextResultPage = getApplicationContext().getString(R.string.nfc_error_lost);
                     else
-                        textoResultPage = e.getMessage();
+                        mTextResultPage = e.getMessage();
                 }
                 return null;
             }
@@ -201,44 +184,33 @@ public class NFCOperationsEncKitKat extends Activity implements ReaderCallback
         }
 
         @Override
-        protected void onPostExecute(Void result)
-        {
-            // Destruimos el cuadro de diálogo
-            progressBar.dismiss();
+        protected void onPostExecute(Void result) {
+            mProgressBar.dismiss();
 
-            // Eliminamos el rovider del DNI electrónico
-            m_ksUserMrtd = null;
+            mKSUserMrtd = null;
 
-            // Si no hemos presentado el PIN aún, permitimos que se continuen las lecturas.
-            // Es posible que el DNIe se haya movido sin querer así que entendemos que
-            // el usuario no da por finalizada la operación
-            if(mForzamosReinicio) {
-                // Repintamos la pantalla
-                myHandler.post(askForRead);
+            // Read again NFC Card... perhaps moved.
+            if (mForceReset) {
+                mHandler.post(askForRead);
 
-                // Habilitamos la comprobación de presencia NFC a 250 milis
-                readerModeON = EnableReaderMode(250);
+                // Check NFC Card with a delay of ~250ms
+                mReaderModeON = EnableReaderMode(250);
                 return;
             }
 
-            // Si hubo algún error que provocó el fin del proceso, lo mostramos
-            if(bHayErrores)
-            {
-                HandleError(textoResultPage);
-                return;
+            if (mHasErrors)
+                HandleError(mTextResultPage);
+            else {
+                Bundle b = new Bundle();
+                if (mDG1 != null) b.putByteArray("DGP_DG1", mDG1.getBytes());
+                if (mDG2 != null) b.putByteArray("DGP_DG2", mDG2.getBytes());
+                if (mDG7 != null) b.putByteArray("DGP_DG7", mDG7.getBytes());
+                if (mDG11 != null) b.putByteArray("DGP_DG11", mDG11.getBytes());
+
+                Intent myResultIntent = new Intent(NFCOperationsEncKitKat.this, DNIeResultActivity.class);
+                myResultIntent.putExtras(b);
+                startActivityForResult(myResultIntent, 1);
             }
-
-            //Creamos la información a pasar entre actividades
-            Bundle b = new Bundle();
-            if(m_dg1!=null) b.putByteArray("DGP_DG1",   m_dg1.getBytes());
-            if(m_dg2!=null) b.putByteArray("DGP_DG2",   m_dg2.getBytes());
-            if(m_dg7!=null) b.putByteArray("DGP_DG7",   m_dg7.getBytes());
-            if(m_dg11!=null)b.putByteArray("DGP_DG11",  m_dg11.getBytes());
-
-            // Pasamos los datos a la activity correspondiente
-            Intent myResultIntent = new Intent(NFCOperationsEncKitKat.this, DNIeResultActivity.class);
-            myResultIntent.putExtras(b);
-            startActivityForResult(myResultIntent, 1);
         }
     }
 
@@ -246,48 +218,38 @@ public class NFCOperationsEncKitKat extends Activity implements ReaderCallback
     public void onCreate(Bundle savedState) {
         super.onCreate(savedState);
 
-        // Quitamos la barra del título
+        // Remove titlebar
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.component_dnie_read_kitkat);
 
-        // Inicializamos controles
-        tagFromIntent 	= null;
+        mTagFromIntent = null;
 
         Context myContext = NFCOperationsEncKitKat.this;
-        myActivity 		= ((Activity) myContext);
+        mActivity = ((Activity) myContext);
 
-        // Obtenemos el adaptador NFC
-        myNfcAdapter = NfcAdapter.getDefaultAdapter(this);
-        myNfcAdapter.setNdefPushMessage(null, this);
-        myNfcAdapter.setNdefPushMessageCallback(null, this);
+        mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
+        mNfcAdapter.setNdefPushMessage(null, this);
+        mNfcAdapter.setNdefPushMessageCallback(null, this);
 
-        // Inicializamos los Data Groups
-        m_dg1 = null;
-        m_dg2 = null;
-        m_dg7 = null;
-        m_dg11 = null;
+        mDG1 = null;
+        mDG2 = null;
+        mDG7 = null;
+        mDG11 = null;
 
-        // Lanzamos el diálogo con el progreso
-        progressBar = new ProgressDialog(myContext);
+        mProgressBar = new ProgressDialog(myContext);
 
-        // Limpiamos controles
         findViewById(R.id.infoResult).setVisibility(TextView.INVISIBLE);
 
-        // Conexión con el DNIe
-        cansDO 	= new CANSpecDOStore(this);
-        canDnie = ((AppMain)getApplicationContext()).getCAN();
+        mCANDOS = new CANSpecDOStore(this);
+        mCANDnie = ((AppMain)getApplicationContext()).getCAN();
 
-        TextView myText = (TextView) findViewById(R.id.infoResult);
+        TextView myText = findViewById(R.id.infoResult);
         myText.setVisibility(TextView.INVISIBLE);
-        myText.setTypeface(fontType);
+        myText.setTypeface(mFontType);
 
-		///////////////////////////////////////////////////////////////////////////////////
-		// Botón de vuelta al Activity anterior
-    	Button btnNFCBack = (Button)findViewById(R.id.btnBack);
+    	Button btnNFCBack = findViewById(R.id.btnBack);
     	btnNFCBack.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-
-				// Volvemos al activity padre
                 onBackPressed();
 			}
 		});
@@ -296,14 +258,13 @@ public class NFCOperationsEncKitKat extends Activity implements ReaderCallback
     @Override
     public void onResume() {
         super.onResume();
-        if(!readerModeON)
-            readerModeON = EnableReaderMode(1000);
+        if (!mReaderModeON)
+            mReaderModeON = EnableReaderMode(1000);
     }
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if ((keyCode == KeyEvent.KEYCODE_BACK)) {
-        	// Devolvemos el valor del m�dulo al Activity padre
 			Intent intent = new Intent(NFCOperationsEncKitKat.this, ReadModeActivity.class);
 	        startActivity(intent);
 	        return false;
@@ -314,10 +275,9 @@ public class NFCOperationsEncKitKat extends Activity implements ReaderCallback
 
     private boolean EnableReaderMode (int msDelay)
     {
-        // Ponemos en msDelay milisegundos el tiempo de espera para comprobar presencia de lectores NFC
         Bundle options = new Bundle();
         options.putInt(NfcAdapter.EXTRA_READER_PRESENCE_CHECK_DELAY, msDelay);
-        myNfcAdapter.enableReaderMode(myActivity,
+        mNfcAdapter.enableReaderMode(mActivity,
                 this,
                 NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK |
                         NfcAdapter.FLAG_READER_NFC_B,
@@ -327,151 +287,135 @@ public class NFCOperationsEncKitKat extends Activity implements ReaderCallback
 
     private boolean DisableReaderMode()
     {
-        // Desactivamos el modo reader de NFC
-        myNfcAdapter.disableReaderMode(this);
-        readerModeON = false;
+        mNfcAdapter.disableReaderMode(this);
+        mReaderModeON = false;
         return true;
     }
 
     @Override
     public void onTagDiscovered(Tag tag) {
         try {
-            tagFromIntent = tag;
+            mTagFromIntent = tag;
 
             MyTaskDG11 newTask = new MyTaskDG11();
             newTask.execute();
 
         } catch (Exception e)
         {
-            textoResultPage = "Ocurrió un error durante la lectura de ficheros.\n"+e.getMessage();
+            mTextResultPage = getApplicationContext().getString(R.string.nfc_error_files) + "\n" + e.getMessage();
         }
     }
 
-    public boolean CargarDGs() throws PaceException, Exception
+    public boolean LoadDGs() throws PaceException, Exception
     {
         try
         {
-            // Leemos los datos del DG1 y DG11
-            textoProcessDlg="Leyendo datos...";
-            myHandler.post(updateStatus);
+            // Read DG1 & DG11 data
+            mTextProcessDlg = getApplicationContext().getString(R.string.nfc_reading);
+            mHandler.post(updateStatus);
 
-            // Activamos el modo rápido para agilizar la carga.
+            // Enable fast-mode
             System.setProperty("es.gob.jmulticard.fastmode", "true");
 
-            // Cargamos el proveedor de servicios del DNIe
+            // Load DNie services provider
             final DnieProvider p = new DnieProvider();
-            p.setProviderTag(tagFromIntent);
-            String can6digitos = canDnie.getCanNumber();
-            while(can6digitos.length()<6)
+            p.setProviderTag(mTagFromIntent);
+            String can6digitos = mCANDnie.getCanNumber();
+            while (can6digitos.length() < 6)
                 can6digitos = "0"+can6digitos;
             p.setProviderCan(can6digitos);
             Security.insertProviderAt(p, 1);
 
-            // Creamos el DnieKeyStore
+            // Create DNIe Key Store
             KeyStoreSpi ksSpi = new MrtdKeyStoreImpl();
-            m_ksUserMrtd = new DnieKeyStore(ksSpi, p, "MRTD");
-            m_ksUserMrtd.load(null, null);
+            mKSUserMrtd = new DnieKeyStore(ksSpi, p, "MRTD");
+            mKSUserMrtd.load(null, null);
 
-            // Leemos la configuración para saber qué datos debemos obtener y cargar sólo los DGs que nos hayan solicitado
-            readUserConfiguration();
-
-            ////////////////////////////////////////////////
-            // Leemos el EF_COM para saber qué datos hay disponibles en el documento
+            // Read EF_COM to know available data on the document
             try{
-                EF_COM m_efcom = m_ksUserMrtd.getEFCOM();
+                EF_COM m_efcom = mKSUserMrtd.getEFCOM();
                 byte[] tagList = m_efcom.getTagList();
 
                 for(int idx=0;idx<tagList.length;idx++) {
-                    switch (tagList[idx]){
+                    switch (tagList[idx]) {
                         case 0x61:
-                            // DG_1. Lo leemos siempre que esté disponible
-                            m_existDg1 = true;
+                            // DG_1
+                            mExistDG1 = true;
                             break;
                         case 0x75:
-                            // DG_2. Lo leemos si el usuario lo especificó
-                            m_existDg2 = true;
+                            // DG_2
+                            mExistDG2 = true;
                             break;
                         case 0x67:
-                            // DG_7. Lo leemos si el usuario lo especificó
-                            m_existDg7 = true;
+                            // DG_7
+                            mExistDG7 = true;
                             break;
                         case 0x6B:
-                            // DG_11. Lo leemos siempre que esté disponible
-                            m_existDg11 = true;
+                            // DG_11
+                            mExistDG11 = true;
                             break;
                     }
                 }
-            }catch (Exception e)
+            } catch (Exception e)
             {
                 e.printStackTrace();
                 throw e;
             }
 
-            ////////////////////////////////////////////////
-            // Leemos el DG1
-            try{
-                if(m_readDg1&&m_existDg1)
-                    m_dg1  = m_ksUserMrtd.getDatagroup1();
-            }catch (Exception e)
-            {
-                e.printStackTrace();
+            // Read available DG's
+            if (mExistDG1) {
+                try {
+                    mDG1 = mKSUserMrtd.getDatagroup1();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
-            ////////////////////////////////////////////////
-            // Leemos el DG11
-            try{
-                if(m_readDg11&&m_existDg11)
-                    m_dg11 = m_ksUserMrtd.getDatagroup11();
-            }catch (Exception e)
-            {
-                e.printStackTrace();
+            if (mExistDG11) {
+                try {
+                    mDG11 = mKSUserMrtd.getDatagroup11();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
-            // Actualizamos la BBDD de los CAN para añadir estos datos si no estuvieran
-            if(canDnie.getUserNif().length()==0)
+            // Update CAN DO
+            if (mCANDnie.getUserNif().length() == 0)
             {
                 String docNumber;
-                String certSubject = m_dg1.getName() + " " + m_dg1.getSurname();
-                if (m_dg11 == null)
-                    docNumber = m_dg1.getDocNumber();
+                String certSubject = mDG1.getName() + " " + mDG1.getSurname();
+                if (mDG11 == null)
+                    docNumber = mDG1.getDocNumber();
                 else
-                    docNumber = m_dg11.getPersonalNumber();
-                CANSpecDO newCan = new CANSpecDO(canDnie.getCanNumber(), certSubject, docNumber);
-                cansDO.delete(canDnie);
-                cansDO.save(newCan);
+                    docNumber = mDG11.getPersonalNumber();
+                CANSpecDO newCan = new CANSpecDO(mCANDnie.getCanNumber(), certSubject, docNumber);
+                mCANDOS.delete(mCANDnie);
+                mCANDOS.save(newCan);
             }
 
-            ////////////////////////////////////////////////
-            // Leemos el DG2
-            if(m_readDg2&&m_existDg2)
+            if (mExistDG2)
             {
-                try{
-                    // Leemos los datos del DG2
-                    textoProcessDlg = "Cargando foto...";
-                    myHandler.post(updateStatus);
+                try {
+                    mTextProcessDlg = getApplicationContext().getString(R.string.nfc_reading_photo);
+                    mHandler.post(updateStatus);
 
-                    // Obtenemos la imagen del ciudadano
-                    m_dg2 = m_ksUserMrtd.getDatagroup2();
+                    mDG2 = mKSUserMrtd.getDatagroup2();
 
-                }catch (Exception e)
+                } catch (Exception e)
                 {
                     e.printStackTrace();
                     throw e;
                 }
             }
 
-            ////////////////////////////////////////////////
-            // Leemos el DG7
-            if(m_readDg7&&m_existDg7)
+            if (mExistDG7)
             {
-                try{
-                    // Leemos los datos del DG7
-                    textoProcessDlg = "Cargando firma...";
-                    myHandler.post(updateStatus);
+                try {
+                    mTextProcessDlg = getApplicationContext().getString(R.string.nfc_reading_signature);
+                    mHandler.post(updateStatus);
 
-                    // Obtenemos la imagen del ciudadano
-                    m_dg7 = m_ksUserMrtd.getDatagroup7();
-                }catch (Exception e)
+                    mDG7 = mKSUserMrtd.getDatagroup7();
+                } catch (Exception e)
                 {
                     e.printStackTrace();
                     throw e;
@@ -480,38 +424,25 @@ public class NFCOperationsEncKitKat extends Activity implements ReaderCallback
         }
         catch(Exception e)
         {
-            textoResultPage = "Ocurrió un error durante la lectura de los DGs.\n";
-            if(e.getMessage()!=null) {
+            mTextResultPage = getApplicationContext().getString(R.string.nfc_error_read) + "\n";
+            if(e.getMessage() != null) {
                 if (e.getMessage().contains("CAN incorrecto")) {
-                    textoResultPage = "Error al montar canal PACE. CAN incorrecto.";
-                    throw new PaceException(textoResultPage);
+                    mTextResultPage = getApplicationContext().getString(R.string.nfc_error_CAN);
+                    throw new PaceException(mTextResultPage);
                 }
 
                 if (e.getMessage().contains("Tag was lost")) {
-                    textoResultPage += "Se perdió la conexión inalámbrica con el DNI electrónico.";
-                    throw new Exception(textoResultPage);
+                    mTextResultPage += getApplicationContext().getString(R.string.nfc_error_lost);
+                    throw new Exception(mTextResultPage);
                 }
 
-                textoResultPage += e.getMessage();
+                mTextResultPage += e.getMessage();
             }
 
-            throw new Exception(textoResultPage);
+            throw new Exception(mTextResultPage);
         }
 
         return true;
     }
 
-
-    void readUserConfiguration()
-    {
-        // Actualizamos los valores mostrados para cuenta y contraseña
-        SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences("com.sp.main_preferences", Context.MODE_PRIVATE);
-
-        // Recupera los valores de lectura de DGs
-        m_readDg1  = true;
-        m_readDg2  = true;
-        m_readDg7  = true;
-        m_readDg11 = true;
-        m_readDg13 = true;
-    }
 }

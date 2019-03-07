@@ -4,29 +4,38 @@
  */
 package ocr.document.tardo.documentocr.fragments;
 
-import java.util.Date;
+import android.graphics.Bitmap;
+import android.graphics.Rect;
 
-public class OCRTask {
-    public static final int ID_TYPE_ELECTRONIC = 1;
-    public static final int ID_TYPE_TRADITIONAL = 2;
-    public static final int ID_TYPE_PASSPORT = 3;
+import com.googlecode.tesseract.android.TessBaseAPI;
 
-    public Boolean mState;
-    public String mResult;
-    public Boolean mRunning;
+import ocr.document.tardo.documentocr.utils.Bitmap2Text;
+import ocr.document.tardo.documentocr.utils.OCRBParser;
 
-    public String mName;
-    public String mDNI;
-    public Date mBirthdayDate;
-    public String mCardNumber;
-    public Date mEndDate;
-    public String mNation;
-    public String mSex;
-    public int mIDType;
 
-    OCRTask() {
-        mState = false;
-        mRunning = false;
-        mIDType = ID_TYPE_ELECTRONIC;
+public class OCRTask implements Runnable {
+
+    private final Bitmap mBitmap;
+    private final Rect mCropArea;
+    private final TessBaseAPI mTessApi;
+    private OCRTaskInfo mOCRTaskInfo;
+
+
+    public OCRTask(Bitmap bitmap, Rect cropArea, TessBaseAPI tessApi, OCRTaskInfo ocrTaskInfo) {
+        mBitmap = bitmap;
+        mCropArea = cropArea;
+        mTessApi = tessApi;
+        mOCRTaskInfo = ocrTaskInfo;
     }
+
+
+    @Override
+    public void run() {
+        final String recognizedText = Bitmap2Text.run(mBitmap, mCropArea, mTessApi);
+        mOCRTaskInfo.mOCRInfo = OCRBParser.run(recognizedText);
+        mOCRTaskInfo.mOCRImage = Bitmap2Text.mCroppedImage;
+        mOCRTaskInfo.mOCRBoxes = Bitmap2Text.mBoxes;
+        mOCRTaskInfo.mRunning = false;
+    }
+
 }

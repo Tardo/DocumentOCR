@@ -16,15 +16,6 @@ Android app for create res.partner record reading a DNI or Passport (OCR-B & NFC
   - Tesseract OCR-B trained data by http://trainyourtesseract.com/
 
 #### TO-DO
-  - Improve UI/UX
   - Use new DG's (when released by police_es)
-  - Complete english translation (Police source is released in hard-coded spanish)
-  - Refactor
-  - Isolate Odoo Dependencies
 
-## USAGE
-#### Odoo Environment Dependencies
-  - Need have installed "hotel_l10n_es" from https://github.com/hootel/hootel/
-    - _Can be easy modified to use custom fields and avoid module usage._
-      - DNIeResultActivity > RPCCreatePartner
-      - OCRBResultActivity > RPCCreatePartner
+** Supports "hotel_l10n_es" from https://github.com/hootel/hootel/

@@ -16,7 +16,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activities.LoginActivity">
+        <activity
+            android:name=".activities.LoginActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -62,6 +64,10 @@
             android:screenOrientation="portrait"></activity>
         <activity
             android:name=".activities.DNIeResultActivity"
+            android:screenOrientation="portrait"></activity>
+
+        <activity
+            android:name=".activities.InfoActivity"
             android:screenOrientation="portrait"></activity>
     </application>
 

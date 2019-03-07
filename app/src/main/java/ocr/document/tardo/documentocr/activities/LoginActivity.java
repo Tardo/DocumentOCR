@@ -14,10 +14,13 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.eiqui.odoojson_rpc.JSONRPCClientOdoo;
 import com.eiqui.odoojson_rpc.exceptions.OdooLoginException;
+import com.eiqui.odoojson_rpc.exceptions.OdooSearchException;
 
 import java.net.MalformedURLException;
 
@@ -57,6 +60,10 @@ public class LoginActivity extends AccountAuthenticatorActivity implements OnCli
         mLogo.setAlpha(0.0f);
         mLogo.setTranslationY(-100);
         mLogo.animate().alpha(1.0f).translationY(0).setStartDelay(250);
+
+        mBtnLoginIn.setAlpha(0.0f);
+        mBtnLoginIn.setTranslationY(100);
+        mBtnLoginIn.animate().alpha(1.0f).translationY(0).setStartDelay(250);
 
         if (getIntent().getBooleanExtra(PARAM_LOGOUT, Boolean.FALSE))
             logout();
@@ -105,6 +112,9 @@ public class LoginActivity extends AccountAuthenticatorActivity implements OnCli
             e.printStackTrace();
             showErrorMessage(getResources().getString(R.string.init_app_error));
         }
+
+        new CheckHotelL10NTask().execute();
+
         startActivity(new Intent(this, ReadModeActivity.class));
         finish();
     }
@@ -130,15 +140,18 @@ public class LoginActivity extends AccountAuthenticatorActivity implements OnCli
         private Exception mException;
         private Integer mUID;
 
+
         protected Boolean doInBackground(String... params) {
             mException = null;
             try {
                 ((AppMain)getApplication()).startOdooClient(params[0], params[1], -1, "");
-                mUID = ((AppMain)getApplication()).OdooClient().loginIn(params[2], params[3]);
-                return (mUID>0);
+                JSONRPCClientOdoo OdooClient = ((AppMain)getApplication()).OdooClient();
+                mUID = OdooClient.loginIn(params[2], params[3]);
+                return (mUID > 0);
             } catch (OdooLoginException e) {
                 mException = e;
             } catch (MalformedURLException e) {
+                mException = e;
                 e.printStackTrace();
             }
             return Boolean.FALSE;
@@ -159,6 +172,37 @@ public class LoginActivity extends AccountAuthenticatorActivity implements OnCli
             else {
                showErrorMessage(
                        (mException != null)?mException.getMessage():getResources().getString(R.string.login_invalid));
+            }
+        }
+    }
+
+    private class CheckHotelL10NTask extends AsyncTask<String, Void, Boolean> {
+        private Exception mException;
+        private Boolean mHasHotelL10N = false;
+
+
+        protected Boolean doInBackground(String... params) {
+            mException = null;
+            final JSONRPCClientOdoo OdooClient = ((AppMain)getApplication()).OdooClient();
+            try {
+                mHasHotelL10N = OdooClient.callCount(
+                        "ir.module.module",
+                        "[['state', '=', 'installed'], ['name', '=', 'hotel_l10n_es']]") > 0;
+            } catch (OdooSearchException e) {
+                mException = e;
+            }
+            return Boolean.TRUE;
+        }
+
+        protected void onPostExecute(Boolean res) {
+            if (res) {
+                SharedPreferences.Editor editor = mSettings.edit();
+                editor.putBoolean("HasHotelL10N", mHasHotelL10N);
+                editor.commit();
+            }
+            else {
+                showErrorMessage(
+                        (mException != null)?mException.getMessage():getResources().getString(R.string.login_invalid));
             }
         }
     }

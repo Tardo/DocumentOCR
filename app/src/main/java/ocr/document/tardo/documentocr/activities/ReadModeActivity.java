@@ -18,7 +18,8 @@ public class ReadModeActivity extends Activity implements OnClickListener {
 
     private Button mBtnOCR;
     private Button mBtnNFC;
-    private ImageButton mBtnLogout;
+    private Button mBtnLogout;
+    private ImageButton mBtnInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,10 +29,12 @@ public class ReadModeActivity extends Activity implements OnClickListener {
         mBtnOCR = findViewById(R.id.btnOCR);
         mBtnNFC = findViewById(R.id.btnNFC);
         mBtnLogout = findViewById(R.id.btnCloseApp);
+        mBtnInfo = findViewById(R.id.btnInfo);
 
         mBtnOCR.setOnClickListener(this);
         mBtnNFC.setOnClickListener(this);
         mBtnLogout.setOnClickListener(this);
+        mBtnInfo.setOnClickListener(this);
     }
 
     @Override
@@ -49,6 +52,10 @@ public class ReadModeActivity extends Activity implements OnClickListener {
             intent.putExtra(LoginActivity.PARAM_LOGOUT, true);
             startActivity(intent);
             finish();
+        }
+        else if (v.getId() == R.id.btnInfo) {
+            Intent intent = new Intent(ReadModeActivity.this, InfoActivity.class);
+            startActivity(intent);
         }
     }
 
