@@ -73,5 +73,5 @@
     <string name="jsonrpc_partner_created">Partner Successfully Created!</string>
     <string name="jsonrpc_partner_error">Error! Can\'t create new partner :/ Please, try again.</string>
 
-    <string name="info_app_message">Application created with European funds granted by the Chamber of Commerce of Santiago de Compostela.</string>
+    <string name="info_app_message">European Regional Development Fund. A way to make Europe.</string>
 </resources>
