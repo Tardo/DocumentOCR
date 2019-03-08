@@ -26,7 +26,7 @@
         android:layout_margin="10dip"
         android:gravity="center"
         android:text="@string/op_dgtinit2"
-        android:textColor="#0B5D8D"
+        android:textColor="@color/colorTextPrimary"
         android:textSize="22sp"
         android:textStyle="bold"
         android:visibility="visible" />
@@ -60,8 +60,7 @@
             android:layout_marginStart="10dp"
             android:layout_marginBottom="35dp"
             android:background="@color/colorPrimary"
-            android:text="@string/back"
-            android:textColor="@color/colorTextPrimary" />
+            android:text="@string/back" />
     </FrameLayout>
 
 </LinearLayout>

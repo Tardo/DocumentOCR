@@ -81,28 +81,20 @@ public class AppMain extends Application {
         // PreferenceManager.setDefaultValues(this, R.xml.prefs, false);
         mSettings = getApplicationContext().getSharedPreferences(Constants.SHARED_PREFS_USER_INFO, Context.MODE_PRIVATE);
 
-        // Generate TESS DATA
-        // lang.traineddata file with the app (in assets folder)
-        // You can get them at:
-        // http://code.google.com/p/tesseract-ocr/downloads/list
-        // This area needs work and optimization
-        if (!(new File(DATA_PATH + TESS_LANG + ".traineddata")).exists()) {
+        File tessdata = new File(DATA_PATH + "tessdata/" + TESS_LANG + ".traineddata");
+        if (!tessdata.exists()) {
+            tessdata.getParentFile().mkdirs();
+            AssetManager assetManager = getAssets();
             try {
-
-                AssetManager assetManager = getAssets();
                 InputStream in = assetManager.open("tessdata/" + TESS_LANG + ".traineddata");
-                //GZIPInputStream gin = new GZIPInputStream(in);
-                OutputStream out = new FileOutputStream(DATA_PATH + TESS_LANG + ".traineddata");
+                OutputStream out = new FileOutputStream(DATA_PATH + "tessdata/" + TESS_LANG + ".traineddata");
 
                 // Transfer bytes from in to out
                 byte[] buf = new byte[1024];
                 int len;
-                //while ((lenf = gin.read(buff)) > 0) {
-                while ((len = in.read(buf)) > 0) {
+                while ((len = in.read(buf)) > 0)
                     out.write(buf, 0, len);
-                }
                 in.close();
-                //gin.close();
                 out.close();
 
                 Log.v(TAG, "Copied " + TESS_LANG + " traineddata");

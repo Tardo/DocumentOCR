@@ -29,14 +29,11 @@ public class Bitmap2Text {
                 cropY,
                 cropArea.width(),
                 cropArea.height());
-
-        Bitmap binarizedImage = OtsuBinarize.run(mCroppedImage);
+        Bitmap scaledBitamp = Bitmap.createScaledBitmap(mCroppedImage, cropArea.width()/Constants.SCALE_FACTOR, cropArea.height()/Constants.SCALE_FACTOR, false);
 
         // Run Tesseract
-        tessApi.setImage(binarizedImage);
-
+        tessApi.setImage(scaledBitamp);
         mBoxes = tessApi.getBoxText(0);
-
         return tessApi.getUTF8Text();
     }
 

@@ -19,34 +19,11 @@
         android:layout_alignParentBottom="false"
         android:id="@+id/linearLayout">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingTop="@dimen/activity_horizontal_margin"
-        android:paddingLeft="@dimen/activity_horizontal_margin"
-        android:paddingRight="@dimen/activity_horizontal_margin"
-        android:layout_marginBottom="50dp"
-        android:background="@color/colorBackgroundSheet">
-
-            <ImageView
-                android:id="@+id/imageView5"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:src="@drawable/alda" />
-
-            <TextView
-                android:id="@+id/textLogo"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/open_sans_bold"
-                android:text="@string/app_name"
-                android:layout_marginBottom="10dp"
-                android:textColor="@color/colorTextPrimary"
-                android:textAlignment="center"
-                android:textSize="36sp" />
-
-        </LinearLayout>
+        <ImageView
+            android:id="@+id/logoApp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:src="@drawable/alda" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -54,8 +31,7 @@
             android:orientation="vertical"
             android:paddingTop="@dimen/activity_horizontal_margin"
             android:paddingLeft="@dimen/activity_horizontal_margin"
-            android:paddingRight="@dimen/activity_horizontal_margin"
-            android:background="@drawable/background_odoo">
+            android:paddingRight="@dimen/activity_horizontal_margin">
 
             <TextView
                 android:layout_width="match_parent"
@@ -63,7 +39,7 @@
                 android:text="Server"
                 android:drawablePadding="5sp"
                 android:drawableLeft="@drawable/ic_developer_board_black_24dp"
-                android:textColor="@android:color/black"
+                android:textColor="@color/colorPrimary"
                 android:textSize="24sp"/>
 
             <EditText
@@ -75,7 +51,7 @@
                 android:importantForAutofill="no"
                 android:inputType="textUri"
                 android:textColor="@color/colorTextPrimary"
-                android:textColorHint="#eee" />
+                android:textColorHint="@color/colorTextHint" />
 
             <EditText
                 android:id="@+id/editDBName"
@@ -86,7 +62,7 @@
                 android:importantForAutofill="no"
                 android:inputType="text"
                 android:textColor="@color/colorTextPrimary"
-                android:textColorHint="#eee" />
+                android:textColorHint="@color/colorTextHint" />
 
             <TextView
                 android:layout_width="match_parent"
@@ -94,7 +70,7 @@
                 android:text="User Account"
                 android:drawablePadding="5sp"
                 android:drawableLeft="@drawable/ic_perm_identity_black_24dp"
-                android:textColor="@android:color/black"
+                android:textColor="@color/colorPrimary"
                 android:layout_marginTop="40dp"
                 android:textSize="24sp"/>
 
@@ -107,7 +83,7 @@
                 android:importantForAutofill="no"
                 android:inputType="text"
                 android:textColor="@color/colorTextPrimary"
-                android:textColorHint="#eee" />
+                android:textColorHint="@color/colorTextHint" />
 
             <EditText
                 android:id="@+id/editPassword"
@@ -118,7 +94,7 @@
                 android:importantForAutofill="no"
                 android:inputType="textPassword"
                 android:textColor="@color/colorTextPrimary"
-                android:textColorHint="#eee" />
+                android:textColorHint="@color/colorTextHint" />
 
             <TextView
                 android:id="@+id/txtError"

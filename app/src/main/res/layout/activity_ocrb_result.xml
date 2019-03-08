@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
 	android:layout_height="match_parent"
-    android:background="@color/colorBackground"
+	android:background="@drawable/background_odoo"
 	android:orientation="vertical">
 
 	<TextView
@@ -40,7 +40,7 @@
 			android:layout_alignParentStart="true"
 			android:layout_alignParentTop="true"
 			android:padding="20dp"
-            android:background="@drawable/background_odoo"
+            android:background="@color/colorBackground"
 			android:stretchColumns="1">
 
 			<TableRow
@@ -53,7 +53,7 @@
                     android:layout_span="2"
                     android:gravity="left"
                     android:text="@string/info_titl_sujeto"
-                    android:textColor="@android:color/black"
+                    android:textColor="@color/colorPrimary"
                     android:drawablePadding="5sp"
                     android:drawableLeft="@drawable/ic_perm_identity_black_24dp"
                     android:textSize="24sp"
@@ -71,6 +71,7 @@
 					android:layout_marginRight="3dp"
 					android:gravity="left"
 					android:padding="1dp"
+                    android:textColor="@color/colorTextPrimary"
 					android:text="@string/info_name"
 					android:textStyle="bold" />
 
@@ -79,7 +80,8 @@
 					android:layout_width="match_parent"
 					android:layout_height="match_parent"
 					android:gravity="left"
-					android:padding="1dp" />
+					android:padding="1dp"
+                    android:textColor="@color/colorTextPrimary" />
 			</TableRow>
 
 			<TableRow
@@ -93,6 +95,7 @@
 					android:layout_marginRight="3dp"
 					android:gravity="left"
 					android:padding="1dp"
+                    android:textColor="@color/colorTextPrimary"
 					android:text="@string/info_surname"
 					android:textStyle="bold" />
 
@@ -101,7 +104,8 @@
 					android:layout_width="match_parent"
 					android:layout_height="match_parent"
 					android:gravity="left"
-					android:padding="1dp" />
+					android:padding="1dp"
+                    android:textColor="@color/colorTextPrimary" />
 			</TableRow>
 
 			<TableRow
@@ -115,6 +119,7 @@
 					android:layout_marginRight="3dp"
 					android:gravity="left"
 					android:padding="1dp"
+                    android:textColor="@color/colorTextPrimary"
 					android:text="@string/info_numdoc"
 					android:textStyle="bold" />
 
@@ -123,7 +128,8 @@
 					android:layout_width="match_parent"
 					android:layout_height="match_parent"
 					android:gravity="left"
-					android:padding="1dp" />
+					android:padding="1dp"
+                    android:textColor="@color/colorTextPrimary" />
 			</TableRow>
 
 			<TableRow
@@ -137,6 +143,7 @@
 					android:layout_marginRight="3dp"
 					android:gravity="left"
 					android:padding="1dp"
+                    android:textColor="@color/colorTextPrimary"
 					android:text="@string/info_caducity"
 					android:textStyle="bold" />
 
@@ -145,7 +152,8 @@
 					android:layout_width="match_parent"
 					android:layout_height="match_parent"
 					android:gravity="left"
-					android:padding="1dp" />
+					android:padding="1dp"
+                    android:textColor="@color/colorTextPrimary" />
 			</TableRow>
 
 			<TableRow
@@ -159,6 +167,7 @@
 					android:layout_marginRight="3dp"
 					android:gravity="left"
 					android:padding="1dp"
+                    android:textColor="@color/colorTextPrimary"
 					android:text="@string/info_expedition"
 					android:textStyle="bold" />
 
@@ -167,7 +176,8 @@
 					android:layout_width="match_parent"
 					android:layout_height="match_parent"
 					android:gravity="left"
-					android:padding="1dp" />
+					android:padding="1dp"
+                    android:textColor="@color/colorTextPrimary" />
 			</TableRow>
 
 			<TableRow
@@ -181,6 +191,7 @@
 					android:layout_marginRight="3dp"
 					android:gravity="left"
 					android:padding="1dp"
+                    android:textColor="@color/colorTextPrimary"
 					android:text="@string/info_birth"
 					android:textStyle="bold" />
 
@@ -189,7 +200,8 @@
 					android:layout_width="match_parent"
 					android:layout_height="match_parent"
 					android:gravity="left"
-					android:padding="1dp" />
+					android:padding="1dp"
+                    android:textColor="@color/colorTextPrimary" />
 			</TableRow>
 
 			<TableRow
@@ -203,6 +215,7 @@
 					android:layout_marginRight="3dp"
 					android:gravity="left"
 					android:padding="1dp"
+                    android:textColor="@color/colorTextPrimary"
 					android:text="@string/info_nation"
 					android:textStyle="bold" />
 
@@ -211,7 +224,8 @@
 					android:layout_width="match_parent"
 					android:layout_height="match_parent"
 					android:gravity="left"
-					android:padding="1dp" />
+					android:padding="1dp"
+                    android:textColor="@color/colorTextPrimary" />
 			</TableRow>
 
 			<TableRow
@@ -225,6 +239,7 @@
 					android:layout_marginRight="3dp"
 					android:gravity="left"
 					android:padding="1dp"
+                    android:textColor="@color/colorTextPrimary"
 					android:text="@string/info_genre"
 					android:textStyle="bold" />
 
@@ -233,7 +248,8 @@
 					android:layout_width="match_parent"
 					android:layout_height="match_parent"
 					android:gravity="left"
-					android:padding="1dp" />
+					android:padding="1dp"
+                    android:textColor="@color/colorTextPrimary" />
 			</TableRow>
 		</TableLayout>
 
@@ -251,8 +267,7 @@
 				android:layout_marginStart="10dp"
 				android:layout_marginBottom="35dp"
 				android:background="@color/colorPrimary"
-				android:text="@string/back"
-				android:textColor="@color/colorTextPrimary" />
+				android:text="@string/back" />
 
 			<Button
 				android:id="@+id/btnValidate"
@@ -264,8 +279,7 @@
 				android:layout_marginEnd="10dp"
 				android:layout_marginBottom="35dp"
 				android:background="@color/colorPrimary"
-				android:text="@string/validate"
-				android:textColor="@color/colorTextPrimary" />
+				android:text="@string/validate" />
 		</FrameLayout>
 
 	</LinearLayout>

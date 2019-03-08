@@ -74,6 +74,7 @@ import java.util.concurrent.TimeUnit;
 import ocr.document.tardo.documentocr.AppMain;
 import ocr.document.tardo.documentocr.R;
 import ocr.document.tardo.documentocr.activities.OCRBReaderActivity;
+import ocr.document.tardo.documentocr.utils.Constants;
 import ocr.document.tardo.documentocr.views.AutoFitTextureView;
 
 public class OCRBReaderFragment extends Fragment
@@ -100,7 +101,6 @@ public class OCRBReaderFragment extends Fragment
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture texture, int width, int height) {
             openCamera(width, height);
-            Log.v(TAG, "SURFACE ESTA QUE PA");
         }
 
         @Override
@@ -216,10 +216,10 @@ public class OCRBReaderFragment extends Fragment
                         final String[] boxes = mOCRTaskInfo.mOCRBoxes.split(System.getProperty("line.separator"));
                         for (String line : boxes) {
                             String[] values = line.split(" ");
-                            Integer x = offsetX + Integer.parseInt(values[1]);
-                            Integer y = offsetY + (cropArea.height()-Integer.parseInt(values[2]));
-                            Integer w = offsetX + Integer.parseInt(values[3]);
-                            Integer h = offsetY + (cropArea.height()-Integer.parseInt(values[4]));
+                            Integer x = offsetX + Integer.parseInt(values[1])*Constants.SCALE_FACTOR;
+                            Integer y = offsetY + (cropArea.height()-Integer.parseInt(values[2])*Constants.SCALE_FACTOR);
+                            Integer w = offsetX + Integer.parseInt(values[3])*Constants.SCALE_FACTOR;
+                            Integer h = offsetY + (cropArea.height()-Integer.parseInt(values[4])*Constants.SCALE_FACTOR);
                             surfaceCanvas.drawRect(new RectF(x, y, w, h), paintRect);
                         }
 

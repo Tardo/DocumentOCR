@@ -38,7 +38,7 @@ public class LoginActivity extends AccountAuthenticatorActivity implements OnCli
     private TextView mTextError;
     private Button mBtnLoginIn;
     private ProgressBar mProgressBar;
-    private TextView mLogo;
+    private ImageView mLogo;
     private SharedPreferences mSettings;
 
     @Override
@@ -54,7 +54,7 @@ public class LoginActivity extends AccountAuthenticatorActivity implements OnCli
         mEditPass = findViewById(R.id.editPassword);
         mBtnLoginIn = findViewById(R.id.btnLogin);
         mProgressBar = findViewById(R.id.progressBar);
-        mLogo = findViewById(R.id.textLogo);
+        mLogo = findViewById(R.id.logoApp);
         mTextError = findViewById(R.id.txtError);
 
         mLogo.setAlpha(0.0f);
