@@ -117,7 +117,7 @@ public class OCRBParser {
                 verCode = Integer.parseInt(lines[1].substring(zones[11][0], zones[11][1]));
                 final Boolean MasterVerificationReaded = (verificationCode == verCode);
 
-                final Boolean allOk = (CardNumberReaded && DateBirthReaded && OutDateReaded && MasterVerificationReaded && DNIReaded && SexReaded);
+                final Boolean allOk = (!zoneName.isEmpty() && CardNumberReaded && DateBirthReaded && OutDateReaded && MasterVerificationReaded && DNIReaded && SexReaded);
                 if (allOk) {
                     result = new OCRInfo();
                     result.mRaw = data;
@@ -184,7 +184,7 @@ public class OCRBParser {
                 verCode = Integer.parseInt(lines[1].substring(zones[10][0], zones[10][1]));
                 final Boolean MasterVerificationReaded = (verificationCode == verCode);
 
-                final Boolean allOk = (DNIReaded && DateBirthReaded && OutDateReaded && MasterVerificationReaded && SexReaded);
+                final Boolean allOk = (!zoneName.isEmpty() && DNIReaded && DateBirthReaded && OutDateReaded && MasterVerificationReaded && SexReaded);
                 if (allOk) {
                     result = new OCRInfo();
                     result.mRaw = data;
@@ -262,7 +262,7 @@ public class OCRBParser {
                 final Boolean MasterVerificationReaded = (verificationCode == verCode);
 
 
-                final Boolean allOk = (PassportReaded && DateBirthReaded && OutDateReaded && DNIReaded && MasterVerificationReaded && SexReaded);
+                final Boolean allOk = (!zoneName.isEmpty() && PassportReaded && DateBirthReaded && OutDateReaded && DNIReaded && MasterVerificationReaded && SexReaded);
                 if (allOk) {
                     result = new OCRInfo();
                     result.mIDType = OCRInfo.ID_TYPE_PASSPORT;

@@ -59,11 +59,12 @@ public class OCRBResultActivity extends Activity implements View.OnClickListener
 
             TextView tvloc;
 
-            tvloc = findViewById(R.id.CITIZEN_data_tab_01);
-            tvloc.setText(name[1]);
-
-            tvloc = findViewById(R.id.CITIZEN_data_tab_02);
-            tvloc.setText(name[0]);
+            if (null != name && name.length > 1) {
+                tvloc = findViewById(R.id.CITIZEN_data_tab_01);
+                tvloc.setText(name[1]);
+                tvloc = findViewById(R.id.CITIZEN_data_tab_02);
+                tvloc.setText(name[0]);
+            }
             tvloc = findViewById(R.id.CITIZEN_data_tab_03);
             tvloc.setText(docNumber);
             tvloc = findViewById(R.id.CITIZEN_data_tab_03_caducity);
