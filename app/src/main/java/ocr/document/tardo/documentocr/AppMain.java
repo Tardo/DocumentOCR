@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.util.Base64;
 import android.util.Log;
 
 import com.eiqui.odoojson_rpc.JSONRPCClientOdoo;
@@ -21,6 +22,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.spec.InvalidKeySpecException;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.DESKeySpec;
 
 import de.tsenger.androsmex.data.CANSpecDO;
 import ocr.document.tardo.documentocr.utils.Constants;
@@ -117,16 +131,53 @@ public class AppMain extends Application {
         mTessApi.setVariable("tessedit_char_whitelist", "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<");
 
         // Auto-Start
+        Boolean autoInit = false;
         int uid = getUID();
         if (uid != -1) {
+            String passwd = new String();
             try {
-                startOdooClient(mSettings.getString("Host", ""),
-                        mSettings.getString("DBName", ""), uid,
-                        mSettings.getString("Pass", ""));
-
-            } catch (MalformedURLException e) {
+                byte[] encrypedPwdBytes = Base64.decode(mSettings.getString("Pass", ""), Base64.NO_WRAP);
+                DESKeySpec keySpec = new DESKeySpec(mSettings.getString("rn", "").getBytes());
+                SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("DES");
+                SecretKey key = keyFactory.generateSecret(keySpec);
+                Cipher cipher = Cipher.getInstance("DES");
+                cipher.init(Cipher.DECRYPT_MODE, key);
+                byte[] plainTextPwdBytes = (cipher.doFinal(encrypedPwdBytes));
+                passwd = new String(plainTextPwdBytes, StandardCharsets.UTF_8);
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            } catch (InvalidKeyException e) {
+                e.printStackTrace();
+            } catch (NoSuchPaddingException e) {
+                e.printStackTrace();
+            } catch (BadPaddingException e) {
+                e.printStackTrace();
+            } catch (InvalidKeySpecException e) {
+                e.printStackTrace();
+            } catch (IllegalBlockSizeException e) {
+                e.printStackTrace();
+            } catch (IllegalArgumentException e) {
                 e.printStackTrace();
             }
+
+            if (!passwd.isEmpty()) {
+                try {
+                    startOdooClient(mSettings.getString("Host", ""),
+                            mSettings.getString("DBName", ""), uid, passwd);
+                    autoInit = true;
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        if (!autoInit) {
+            SecureRandom sr = new SecureRandom();
+            byte[] output = new byte[16];
+            sr.nextBytes(output);
+            SharedPreferences.Editor editor = mSettings.edit();
+            editor.putString("rn", Base64.encodeToString(output, Base64.NO_WRAP));
+            editor.commit();
         }
 
         super.onCreate();

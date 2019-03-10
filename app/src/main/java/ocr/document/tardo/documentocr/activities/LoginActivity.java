@@ -10,6 +10,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Base64;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -22,7 +24,20 @@ import com.eiqui.odoojson_rpc.JSONRPCClientOdoo;
 import com.eiqui.odoojson_rpc.exceptions.OdooLoginException;
 import com.eiqui.odoojson_rpc.exceptions.OdooSearchException;
 
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.DESKeySpec;
 
 import ocr.document.tardo.documentocr.AppMain;
 import ocr.document.tardo.documentocr.R;
@@ -70,8 +85,6 @@ public class LoginActivity extends AccountAuthenticatorActivity implements OnCli
 
         mEditHost.setText(mSettings.getString("Host", ""));
         mEditDBName.setText(mSettings.getString("DBName", ""));
-        mEditLogin.setText(mSettings.getString("Login", ""));
-        mEditPass.setText(mSettings.getString("Pass", ""));
 
         mBtnLoginIn.setOnClickListener(this);
 
@@ -104,10 +117,36 @@ public class LoginActivity extends AccountAuthenticatorActivity implements OnCli
     }
 
     private void initApp() {
+        String passwd = new String();
+        try {
+            byte[] encrypedPwdBytes = Base64.decode(mSettings.getString("Pass", ""), Base64.NO_WRAP);
+            DESKeySpec keySpec = new DESKeySpec(mSettings.getString("rn", "").getBytes());
+            SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("DES");
+            SecretKey key = keyFactory.generateSecret(keySpec);
+            Cipher cipher = Cipher.getInstance("DES");
+            cipher.init(Cipher.DECRYPT_MODE, key);
+            byte[] plainTextPwdBytes = (cipher.doFinal(encrypedPwdBytes));
+            passwd = new String(plainTextPwdBytes, StandardCharsets.UTF_8);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        } catch (BadPaddingException e) {
+            e.printStackTrace();
+        } catch (InvalidKeySpecException e) {
+            e.printStackTrace();
+        } catch (IllegalBlockSizeException e) {
+            e.printStackTrace();
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        }
+
         try {
             ((AppMain)getApplication()).startOdooClient(mSettings.getString("Host",""),
                     mSettings.getString("DBName",""),
-                    mSettings.getInt("UserID",-1), mSettings.getString("Pass",""));
+                    mSettings.getInt("UserID",-1), passwd);
         } catch (MalformedURLException e) {
             e.printStackTrace();
             showErrorMessage(getResources().getString(R.string.init_app_error));
@@ -163,8 +202,33 @@ public class LoginActivity extends AccountAuthenticatorActivity implements OnCli
                 editor.putInt("UserID", mUID);
                 editor.putString("Host", mEditHost.getText().toString());
                 editor.putString("DBName", mEditDBName.getText().toString());
-                editor.putString("Login", mEditLogin.getText().toString());
-                editor.putString("Pass", mEditPass.getText().toString());
+
+                try {
+                    byte[] cleartext = mEditPass.getText().toString().getBytes("UTF8");
+                    DESKeySpec keySpec = new DESKeySpec(mSettings.getString("rn", "").getBytes());
+                    SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("DES");
+                    SecretKey key = keyFactory.generateSecret(keySpec);
+                    Cipher cipher = Cipher.getInstance("DES");
+                    cipher.init(Cipher.ENCRYPT_MODE, key);
+                    final String encPasswdBase64 = Base64.encodeToString(cipher.doFinal(cleartext), Base64.NO_WRAP);
+                    Log.v("MITAA", encPasswdBase64);
+                    editor.putString("Pass", encPasswdBase64);
+                } catch (InvalidKeyException e) {
+                    e.printStackTrace();
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                } catch (NoSuchAlgorithmException e) {
+                    e.printStackTrace();
+                } catch (InvalidKeySpecException e) {
+                    e.printStackTrace();
+                } catch (NoSuchPaddingException e) {
+                    e.printStackTrace();
+                } catch (IllegalBlockSizeException e) {
+                    e.printStackTrace();
+                } catch (BadPaddingException e) {
+                    e.printStackTrace();
+                }
+
                 editor.commit();
 
                 initApp();
