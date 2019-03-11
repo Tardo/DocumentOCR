@@ -13,8 +13,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ImageFormat;
@@ -26,7 +24,6 @@ import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
-import android.graphics.drawable.Drawable;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
@@ -58,23 +55,23 @@ import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.googlecode.tesseract.android.TessBaseAPI;
 
-import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Scanner;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import ocr.document.tardo.documentocr.AppMain;
 import ocr.document.tardo.documentocr.R;
 import ocr.document.tardo.documentocr.activities.OCRBReaderActivity;
-import ocr.document.tardo.documentocr.utils.Constants;
 import ocr.document.tardo.documentocr.views.AutoFitTextureView;
 
 public class OCRBReaderFragment extends Fragment
@@ -124,8 +121,11 @@ public class OCRBReaderFragment extends Fragment
     private CameraCaptureSession mCaptureSession;
     private CameraDevice mCameraDevice;
     private Size mPreviewSize;
-    private Drawable mVisor;
+    private ImageView mVisor;
     private SurfaceView mSurfaceView;
+    private SurfaceHolder mSurfaceHolder;
+    private Paint mPaintOCRRect;
+    private Rect mCropArea;
 
 
     private final CameraDevice.StateCallback mStateCallback = new CameraDevice.StateCallback() {
@@ -176,57 +176,41 @@ public class OCRBReaderFragment extends Fragment
             = new CameraCaptureSession.CaptureCallback() {
 
         private void process(CaptureResult result) {
-            switch (mState) {
-                case STATE_PREVIEW: {
-                    Rect cropArea = new Rect(0, 0, mTextureView.getWidth(), mVisor.getIntrinsicHeight());
-                    if (null == mOCRTaskInfo.mOCRInfo && !mOCRTaskInfo.mRunning) {
-                        mOCRReaded = false;
-                        final TessBaseAPI tessApi = ((AppMain)getActivity().getApplication()).getTessApi();
-                        mBackgroundHandler.postAtFrontOfQueue(new OCRTask(mTextureView.getBitmap(), cropArea, tessApi, mOCRTaskInfo));
-                        mOCRTaskInfo.mRunning = true;
-                    } else if (null != mOCRTaskInfo.mOCRInfo && !mOCRReaded) {
-                        vibrate(VIBRATE_TIME_MS);
-                        mBackgroundHandler.removeCallbacksAndMessages(null);
-                        mOCRReaded = true;
+            if (mState == STATE_PREVIEW) {
+                if (null == mOCRTaskInfo.mOCRInfo && !mOCRTaskInfo.mRunning) {
+                    mOCRReaded = false;
+                    final TessBaseAPI tessApi = ((AppMain)getActivity().getApplication()).getTessApi();
+                    mBackgroundHandler.postAtFrontOfQueue(new OCRTask(mTextureView.getBitmap(), mCropArea, tessApi, mOCRTaskInfo));
+                    mOCRTaskInfo.mRunning = true;
+                } else if (null != mOCRTaskInfo.mOCRInfo && !mOCRReaded) {
+                    vibrate(VIBRATE_TIME_MS);
+                    mBackgroundHandler.removeCallbacksAndMessages(null);
+                    mOCRReaded = true;
 
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                OCRBReaderActivity activity = (OCRBReaderActivity)getActivity();
-                                activity.printOCRResults(mOCRTaskInfo.mOCRInfo, mOCRTaskInfo.mOCRImage, mOCRTaskInfo.mOCRBoxes);
-                            }
-                        });
-                    }
-
-                    // Draw recognized character boxes
-                    if (null != mOCRTaskInfo.mOCRBoxes && !mOCRTaskInfo.mOCRBoxes.isEmpty()) {
-                        float centerW = mTextureView.getBitmap().getWidth()/2 - cropArea.width()/2;
-                        float centerH = mTextureView.getBitmap().getHeight()/2 - cropArea.height()/2;
-                        int offsetX = (int)(centerW);
-                        int offsetY = (int)(centerH);
-
-                        Paint paintRect = new Paint(Paint.ANTI_ALIAS_FLAG);
-                        paintRect.setColor(Color.WHITE);
-                        paintRect.setAlpha(200);
-
-                        SurfaceHolder surfaceHolder = mSurfaceView.getHolder();
-                        surfaceHolder.setFormat(PixelFormat.TRANSPARENT);
-                        Canvas surfaceCanvas = surfaceHolder.lockCanvas();
-                        surfaceCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-                        final String[] boxes = mOCRTaskInfo.mOCRBoxes.split(System.getProperty("line.separator"));
-                        for (String line : boxes) {
-                            String[] values = line.split(" ");
-                            Integer x = offsetX + Integer.parseInt(values[1])*Constants.SCALE_FACTOR;
-                            Integer y = offsetY + (cropArea.height()-Integer.parseInt(values[2])*Constants.SCALE_FACTOR);
-                            Integer w = offsetX + Integer.parseInt(values[3])*Constants.SCALE_FACTOR;
-                            Integer h = offsetY + (cropArea.height()-Integer.parseInt(values[4])*Constants.SCALE_FACTOR);
-                            surfaceCanvas.drawRect(new RectF(x, y, w, h), paintRect);
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            OCRBReaderActivity activity = (OCRBReaderActivity)getActivity();
+                            activity.printOCRResults(mOCRTaskInfo.mOCRInfo, mOCRTaskInfo.mOCRImage, mOCRTaskInfo.mOCRBoxes);
                         }
+                    });
+                }
 
-                        surfaceHolder.unlockCanvasAndPost(surfaceCanvas);
+                // Draw recognized character boxes
+                if (null != mOCRTaskInfo.mOCRBoxes && !mOCRTaskInfo.mOCRBoxes.isEmpty()) {
+                    Canvas surfaceCanvas = mSurfaceHolder.lockCanvas();
+                    surfaceCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+                    Scanner scanner = new Scanner(mOCRTaskInfo.mOCRBoxes);
+                    while (scanner.hasNext()) {
+                        scanner.next(); // Letter
+                        final Integer x = mCropArea.left + scanner.nextBigInteger().intValue();
+                        final Integer y = mCropArea.top + (mCropArea.height()-scanner.nextBigInteger().intValue());
+                        final Integer w = mCropArea.left + scanner.nextBigInteger().intValue();
+                        final Integer h = mCropArea.top + (mCropArea.height()-scanner.nextBigInteger().intValue());
+                        surfaceCanvas.drawRect(new Rect(x, y, w, h), mPaintOCRRect);
+                        scanner.next(); // Unknown
                     }
-
-                    break;
+                    mSurfaceHolder.unlockCanvasAndPost(surfaceCanvas);
                 }
             }
         }
@@ -261,7 +245,6 @@ public class OCRBReaderFragment extends Fragment
 
 
     public void vibrate(final int milis) {
-
         Vibrator v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             v.vibrate(VibrationEffect.createOneShot(milis, VibrationEffect.DEFAULT_AMPLITUDE));
@@ -273,7 +256,6 @@ public class OCRBReaderFragment extends Fragment
 
     private static Size chooseOptimalSize(Size[] choices, int textureViewWidth,
                                           int textureViewHeight, int maxWidth, int maxHeight, Size aspectRatio) {
-
         // Collect the supported resolutions that are at least as big as the preview Surface
         List<Size> bigEnough = new ArrayList<>();
         // Collect the supported resolutions that are smaller than the preview Surface
@@ -318,10 +300,17 @@ public class OCRBReaderFragment extends Fragment
     @Override
     public void onViewCreated(final View view, Bundle savedInstanceState) {
         mTextureView = view.findViewById(R.id.texture);
-        mVisor = getResources().getDrawable(R.drawable.rect_dni);
+        mVisor = view.findViewById(R.id.rect_visor);
 
         mSurfaceView = view.findViewById(R.id.surfaceView);
         mSurfaceView.setZOrderOnTop(true);
+
+        mSurfaceHolder = mSurfaceView.getHolder();
+        mSurfaceHolder.setFormat(PixelFormat.TRANSPARENT);
+
+        mPaintOCRRect = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mPaintOCRRect.setColor(Color.WHITE);
+        mPaintOCRRect.setAlpha(200);
     }
 
     @Override
@@ -401,7 +390,7 @@ public class OCRBReaderFragment extends Fragment
                         new CompareSizesByArea());
 
                 mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(),
-                        ImageFormat.JPEG, /*maxImages*/2);
+                        ImageFormat.JPEG, 2);
 
                 // Find out if we need to swap dimension to get the preview size relative to sensor
                 // coordinate.
@@ -502,6 +491,8 @@ public class OCRBReaderFragment extends Fragment
         } catch (InterruptedException e) {
             throw new RuntimeException("Interrupted while trying to lock camera opening.", e);
         }
+
+        mCropArea = new Rect(mVisor.getLeft(), mVisor.getTop(), mVisor.getRight(), mVisor.getBottom());
     }
 
     private void closeCamera() {
@@ -534,6 +525,7 @@ public class OCRBReaderFragment extends Fragment
 
     private void stopBackgroundThread() {
         mBackgroundThread.quitSafely();
+        mBackgroundHandler.removeCallbacksAndMessages(null);
         try {
             mBackgroundThread.join();
             mBackgroundThread = null;

@@ -31,6 +31,15 @@ public class ReadModeActivity extends Activity implements OnClickListener {
         mBtnLogout = findViewById(R.id.btnCloseApp);
         mBtnInfo = findViewById(R.id.btnInfo);
 
+        mBtnOCR.setAlpha(0.0f);
+        mBtnOCR.setTranslationX(-100);
+        mBtnOCR.animate().alpha(1.0f).translationX(0).setStartDelay(250);
+        mBtnNFC.setAlpha(0.0f);
+        mBtnNFC.setTranslationX(100);
+        mBtnNFC.animate().alpha(1.0f).translationX(0).setStartDelay(250);
+        mBtnLogout.setTranslationY(100);
+        mBtnLogout.animate().alpha(1.0f).translationY(0).setStartDelay(250);
+
         mBtnOCR.setOnClickListener(this);
         mBtnNFC.setOnClickListener(this);
         mBtnLogout.setOnClickListener(this);

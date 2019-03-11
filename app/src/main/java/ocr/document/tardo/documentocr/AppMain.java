@@ -9,7 +9,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.os.Environment;
-import android.preference.PreferenceManager;
 import android.util.Base64;
 import android.util.Log;
 

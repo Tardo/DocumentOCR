@@ -6,7 +6,6 @@ package ocr.document.tardo.documentocr.utils;
 
 import android.graphics.Bitmap;
 import android.graphics.Rect;
-import android.util.Log;
 
 import com.googlecode.tesseract.android.TessBaseAPI;
 
@@ -17,22 +16,16 @@ public class Bitmap2Text {
     public static String mBoxes;
 
     public static String run(Bitmap bitmap, Rect cropArea, TessBaseAPI tessApi) {
-        float centerW = bitmap.getWidth()/2 - cropArea.width()/2;
-        float centerH = bitmap.getHeight()/2 - cropArea.height()/2;
-        int cropX = (int)(centerW);
-        int cropY = (int)(centerH);
-
         // Crop & Binarize input image
         mCroppedImage = Bitmap.createBitmap(
                 bitmap,
-                cropX,
-                cropY,
+                cropArea.left,
+                cropArea.top,
                 cropArea.width(),
                 cropArea.height());
-        Bitmap scaledBitamp = Bitmap.createScaledBitmap(mCroppedImage, cropArea.width()/Constants.SCALE_FACTOR, cropArea.height()/Constants.SCALE_FACTOR, false);
 
         // Run Tesseract
-        tessApi.setImage(scaledBitamp);
+        tessApi.setImage(mCroppedImage);
         mBoxes = tessApi.getBoxText(0);
         return tessApi.getUTF8Text();
     }
