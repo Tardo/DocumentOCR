@@ -11,3 +11,6 @@
 .externalNativeBuild
 .directory
 
+/app/debug
+/app/release
+

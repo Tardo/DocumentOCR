@@ -2,12 +2,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="ocr.document.tardo.documentocr">
 
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.nfc" android:required="false" />
+
     <uses-permission android:name="android.permission.NFC" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-feature android:name="android.hardware.camera2.full" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
 
     <application
         android:name=".AppMain"
@@ -21,7 +25,6 @@
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -32,6 +35,7 @@
             android:enabled = "false">
             <intent-filter>
                 <action android:name="android.nfc.action.TAG_DISCOVERED"/>
+                <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
             <meta-data
@@ -45,30 +49,58 @@
         <activity
             android:name=".activities.ReadModeActivity"
             android:screenOrientation="portrait"
-            android:label="@string/title_login_activity"></activity>
+            android:label="@string/title_login_activity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".activities.OCRBReaderActivity"
             android:screenOrientation="portrait"
-            android:label="@string/title_camera_activity"></activity>
+            android:label="@string/title_camera_activity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".activities.OCRBResultActivity"
             android:screenOrientation="portrait"
-            android:label="@string/title_camera_activity"></activity>
+            android:label="@string/title_camera_activity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".activities.DNIeCANActivity"
             android:screenOrientation="portrait"
-            android:label="@string/title_dnie_activity"></activity>
+            android:label="@string/title_dnie_activity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+            </intent-filter>
+        </activity>
 
         <activity
             android:name=".activities.DNIeErrorActivity"
-            android:screenOrientation="portrait"></activity>
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".activities.DNIeResultActivity"
-            android:screenOrientation="portrait"></activity>
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+            </intent-filter>
+        </activity>
 
         <activity
             android:name=".activities.InfoActivity"
-            android:screenOrientation="portrait"></activity>
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

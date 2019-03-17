@@ -73,5 +73,9 @@
     <string name="jsonrpc_partner_created">Partner Successfully Created!</string>
     <string name="jsonrpc_partner_error">Error! Can\'t create new partner :/ Please, try again.</string>
 
+    <string name="error_no_camera">This device doesn\'t support this option. No camera has been detected.</string>
+    <string name="error_no_nfc">This device doesn\'t support this option. No NFC has been detected.</string>
+    <string name="error_disabled_nfc">To use this option you must first activate the NFC</string>
+
     <string name="info_app_message">European Regional Development Fund. A way to make Europe.</string>
 </resources>

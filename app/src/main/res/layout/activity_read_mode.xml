@@ -38,7 +38,7 @@
                 android:layout_marginRight="50dp"
                 android:background="@color/colorPrimary"
                 android:fontFamily="@font/open_sans_bold"
-                android:padding="45dp"
+                android:padding="35dp"
                 android:drawableTop="@drawable/ic_visibility_black_48dp"
                 android:text="OCR"
                 android:textSize="36sp" />
@@ -51,7 +51,7 @@
                 android:fontFamily="@font/open_sans_bold"
                 android:drawableTop="@drawable/ic_nfc_black_48dp"
                 android:text="NFC"
-                android:padding="45dp"
+                android:padding="35dp"
                 android:textSize="36sp" />
 
         </LinearLayout>

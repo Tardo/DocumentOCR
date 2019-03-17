@@ -6,11 +6,15 @@ package ocr.document.tardo.documentocr.activities;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.nfc.NfcAdapter;
+import android.nfc.NfcManager;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
 import ocr.document.tardo.documentocr.R;
 
@@ -49,12 +53,29 @@ public class ReadModeActivity extends Activity implements OnClickListener {
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.btnOCR) {
-            Intent intent = new Intent(ReadModeActivity.this, OCRBReaderActivity.class);
-            startActivity(intent);
+            PackageManager pm = getPackageManager();
+            if (pm.hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
+                Intent intent = new Intent(ReadModeActivity.this, OCRBReaderActivity.class);
+                startActivity(intent);
+            } else {
+                showToast(getString(R.string.error_no_camera));
+            }
         }
         else if (v.getId() == R.id.btnNFC) {
-            Intent intent = new Intent(ReadModeActivity.this, DNIeCANActivity.class);
-            startActivity(intent);
+            PackageManager pm = getPackageManager();
+
+            if (pm.hasSystemFeature(PackageManager.FEATURE_NFC)) {
+                NfcManager manager = (NfcManager) getSystemService(NFC_SERVICE);
+                NfcAdapter adapter = manager.getDefaultAdapter();
+                if (null != adapter && adapter.isEnabled()) {
+                    Intent intent = new Intent(ReadModeActivity.this, DNIeCANActivity.class);
+                    startActivity(intent);
+                } else {
+                    showToast(getString(R.string.error_disabled_nfc));
+                }
+            } else {
+                showToast(getString(R.string.error_no_nfc));
+            }
         }
         else if (v.getId() == R.id.btnCloseApp) {
             Intent intent = new Intent(ReadModeActivity.this, LoginActivity.class);
@@ -65,6 +86,18 @@ public class ReadModeActivity extends Activity implements OnClickListener {
         else if (v.getId() == R.id.btnInfo) {
             Intent intent = new Intent(ReadModeActivity.this, InfoActivity.class);
             startActivity(intent);
+        }
+    }
+
+    private void showToast(final String text) {
+        final Activity activity = this;
+        if (activity != null) {
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(activity, text, Toast.LENGTH_SHORT).show();
+                }
+            });
         }
     }
 
