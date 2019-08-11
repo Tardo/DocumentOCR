@@ -59,7 +59,7 @@ public class OCRBResultActivity extends Activity implements View.OnClickListener
 
             TextView tvloc;
 
-            if (null != name && name.length > 1) {
+            if (name.length > 1) {
                 tvloc = findViewById(R.id.CITIZEN_data_tab_01);
                 tvloc.setText(name[1]);
                 tvloc = findViewById(R.id.CITIZEN_data_tab_02);
@@ -160,7 +160,7 @@ public class OCRBResultActivity extends Activity implements View.OnClickListener
         @Override
         public void run() {
             final SharedPreferences Settings = ocrbResultActivity.getSharedPreferences(Constants.SHARED_PREFS_USER_INFO, Context.MODE_PRIVATE);
-            final Boolean hasHotelL10N = Settings.getBoolean("HasHotelL10N", false);
+            final boolean hasHotelL10N = Settings.getBoolean("HasHotelL10N", false);
             final Bundle extras = ocrbResultActivity.getIntent().getExtras();
             String name = extras.getString("NAME");
             String docNumber = extras.getString("DOC_NUMBER");

@@ -4,12 +4,14 @@
  */
 package ocr.document.tardo.documentocr.activities;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.nfc.NfcAdapter;
 import android.nfc.NfcManager;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -19,6 +21,8 @@ import android.widget.Toast;
 import ocr.document.tardo.documentocr.R;
 
 public class ReadModeActivity extends Activity implements OnClickListener {
+
+    private final int REQUEST_PERMISSION_NFC = 1;
 
     private Button mBtnOCR;
     private Button mBtnNFC;
@@ -91,14 +95,12 @@ public class ReadModeActivity extends Activity implements OnClickListener {
 
     private void showToast(final String text) {
         final Activity activity = this;
-        if (activity != null) {
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(activity, text, Toast.LENGTH_SHORT).show();
-                }
-            });
-        }
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(activity, text, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
 }

@@ -234,14 +234,12 @@ public class DNIeResultActivity extends Activity implements View.OnClickListener
 
     private void showToast(final String text) {
         final Activity activity = this;
-        if (activity != null) {
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(activity, text, Toast.LENGTH_SHORT).show();
-                }
-            });
-        }
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(activity, text, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
 
@@ -264,7 +262,7 @@ public class DNIeResultActivity extends Activity implements View.OnClickListener
             final SharedPreferences Settings = ocrbResultActivity.getSharedPreferences(Constants.SHARED_PREFS_USER_INFO, Context.MODE_PRIVATE);
             final Boolean hasHotelL10N = Settings.getBoolean("HasHotelL10N", false);
             String name = ocrbResultActivity.mDG1.getSurname() + "  " + ocrbResultActivity.mDG1.getName();
-            String docNumber = ocrbResultActivity.mDG11.getPersonalNumber();
+            String docNumber = ocrbResultActivity.mDG11.getPersonalNumber().replaceAll("[-]", "");
             String gender = ocrbResultActivity.mDG1.getSex();
             String nation = ocrbResultActivity.mDG1.getNationality();
             Date expiryDate = null;
@@ -306,7 +304,7 @@ public class DNIeResultActivity extends Activity implements View.OnClickListener
                 } else {
                     createValues = String.format(
                             "{'image': '%s', 'name': '%s', 'vat': '%s', comment: 'Birthday: %s\nGender: %s\nNation: %s\nDocument Expedition Date: %s'}",
-                            name, docNumber, strBirthDate, gender, nation, strExpDate);
+                            encodedPhoto, name, docNumber, strBirthDate, gender, nation, strExpDate);
                 }
                 mOperationResult = mClient.callCreate("res.partner", createValues);
 

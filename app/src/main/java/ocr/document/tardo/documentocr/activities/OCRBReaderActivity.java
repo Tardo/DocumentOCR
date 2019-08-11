@@ -13,6 +13,7 @@ import java.io.ByteArrayOutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 import ocr.document.tardo.documentocr.fragments.OCRBReaderFragment;
 import ocr.document.tardo.documentocr.R;
@@ -34,7 +35,7 @@ public class OCRBReaderActivity extends AppCompatActivity {
 
     public void printOCRResults(OCRInfo ocrInfo, Bitmap imgOCR, String boxes) {
         DateFormat df = DateFormat.getDateInstance(2);
-        DateFormat odf = new SimpleDateFormat("YYYY-MM-dd");
+        DateFormat odf = new SimpleDateFormat("YYYY-MM-dd", Locale.getDefault());
 
         Bundle bundle = new Bundle();
         bundle.putString("NAME", ocrInfo.mName);
@@ -66,6 +67,6 @@ public class OCRBReaderActivity extends AppCompatActivity {
         myResultIntent.putExtras(bundle);
         startActivity(myResultIntent);
         finish();
-    };
+    }
 
 }

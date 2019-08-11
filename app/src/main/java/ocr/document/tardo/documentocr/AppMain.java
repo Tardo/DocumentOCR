@@ -43,9 +43,9 @@ public class AppMain extends Application {
 
     private static final String TAG = "AppMain";
 
-    private static final String DATA_PATH = Environment
+    public static final String DATA_PATH = Environment
             .getExternalStorageDirectory().toString() + "/DocumentOCR/";
-    private static final String TESS_LANG = "OCRB";
+    public static final String TESS_LANG = "OCRB";
 
     protected JSONRPCClientOdoo mOdooClient;
     private SharedPreferences mSettings;
@@ -116,18 +116,9 @@ public class AppMain extends Application {
             }
         }
 
-        // Load Tesseract
+        // Instantiate Tesseract
         mTessApi = new TessBaseAPI();
         //mTessApi.setDebug(true);
-        mTessApi.init(DATA_PATH, TESS_LANG);
-        mTessApi.setVariable("load_system_dawg", "F");
-        mTessApi.setVariable("load_freq_dawg", "F");
-        mTessApi.setVariable("load_unambig_dawg", "F");
-        mTessApi.setVariable("load_number_dawg", "F");
-        mTessApi.setVariable("load_fixed_length_dawgs", "F");
-        mTessApi.setVariable("load_bigram_dawg", "F");
-        mTessApi.setVariable("wordrec_enable_assoc", "F");
-        mTessApi.setVariable("tessedit_char_whitelist", "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<");
 
         // Auto-Start
         Boolean autoInit = false;
@@ -176,7 +167,7 @@ public class AppMain extends Application {
             sr.nextBytes(output);
             SharedPreferences.Editor editor = mSettings.edit();
             editor.putString("rn", Base64.encodeToString(output, Base64.NO_WRAP));
-            editor.commit();
+            editor.apply();
         }
 
         super.onCreate();

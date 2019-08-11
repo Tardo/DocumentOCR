@@ -78,4 +78,7 @@
     <string name="error_disabled_nfc">To use this option you must first activate the NFC</string>
 
     <string name="info_app_message">European Regional Development Fund. A way to make Europe.</string>
+
+    <string name="server">Server</string>
+    <string name="user_account">User Account</string>
 </resources>

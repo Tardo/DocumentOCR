@@ -448,10 +448,10 @@ public class OCRBReaderFragment extends Fragment
                 int orientation = getResources().getConfiguration().orientation;
                 if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
                     mTextureView.setAspectRatio(
-                            mTextureView.getWidth(), mTextureView.getHeight());
+                            mPreviewSize.getWidth(), mPreviewSize.getHeight());
                 } else {
                     mTextureView.setAspectRatio(
-                            mTextureView.getWidth(), mTextureView.getHeight());
+                            mPreviewSize.getHeight(), mPreviewSize.getWidth());
                 }
 
                 // Check if the flash is supported.

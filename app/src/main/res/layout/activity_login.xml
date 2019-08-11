@@ -1,43 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:background="@color/colorBackground"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorBackground"
+    android:gravity="center_vertical"
+    android:id="@+id/linearLayout"
     tools:context=".activities.LoginActivity">
 
-    <LinearLayout
-        android:orientation="vertical"
+    <ImageView
+        android:id="@+id/logoApp"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center_vertical"
-        android:id="@+id/linearLayout">
+        android:layout_height="wrap_content"
+        android:src="@drawable/alda" />
 
-        <ImageView
-            android:id="@+id/logoApp"
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingTop="@dimen/activity_horizontal_margin"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin">
+
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:src="@drawable/alda" />
+            android:text="@string/server"
+            android:drawablePadding="5sp"
+            android:drawableStart="@drawable/ic_developer_board_black_24dp"
+            android:textColor="@color/colorPrimary"
+            android:textSize="24sp"/>
 
-        <LinearLayout
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/editHostLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingTop="@dimen/activity_horizontal_margin"
-            android:paddingLeft="@dimen/activity_horizontal_margin"
-            android:paddingRight="@dimen/activity_horizontal_margin">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Server"
-                android:drawablePadding="5sp"
-                android:drawableLeft="@drawable/ic_developer_board_black_24dp"
-                android:textColor="@color/colorPrimary"
-                android:textSize="24sp"/>
-
-            <EditText
+            android:textColor="@color/colorTextPrimary"
+            android:textColorHint="@color/colorTextHint"
+            app:passwordToggleEnabled="true"
+            android:layout_marginBottom="@dimen/login_spacing_bottom">
+            <android.support.design.widget.TextInputEditText
                 android:id="@+id/editHost"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -47,8 +51,17 @@
                 android:inputType="textUri"
                 android:textColor="@color/colorTextPrimary"
                 android:textColorHint="@color/colorTextHint" />
+        </android.support.design.widget.TextInputLayout>
 
-            <EditText
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/editDBNameLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/colorTextPrimary"
+            android:textColorHint="@color/colorTextHint"
+            app:passwordToggleEnabled="true"
+            android:layout_marginBottom="@dimen/login_spacing_bottom">
+            <AutoCompleteTextView
                 android:id="@+id/editDBName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -58,18 +71,27 @@
                 android:inputType="text"
                 android:textColor="@color/colorTextPrimary"
                 android:textColorHint="@color/colorTextHint" />
+        </android.support.design.widget.TextInputLayout>
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="User Account"
-                android:drawablePadding="5sp"
-                android:drawableLeft="@drawable/ic_perm_identity_black_24dp"
-                android:textColor="@color/colorPrimary"
-                android:layout_marginTop="40dp"
-                android:textSize="24sp"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/user_account"
+            android:drawablePadding="5sp"
+            android:drawableStart="@drawable/ic_developer_board_black_24dp"
+            android:textColor="@color/colorPrimary"
+            android:layout_marginTop="40dp"
+            android:textSize="24sp"/>
 
-            <EditText
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/editLoginLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/colorTextPrimary"
+            android:textColorHint="@color/colorTextHint"
+            app:passwordToggleEnabled="true"
+            android:layout_marginBottom="@dimen/login_spacing_bottom">
+            <android.support.design.widget.TextInputEditText
                 android:id="@+id/editLogin"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -79,45 +101,52 @@
                 android:inputType="text"
                 android:textColor="@color/colorTextPrimary"
                 android:textColorHint="@color/colorTextHint" />
+        </android.support.design.widget.TextInputLayout>
 
-            <EditText
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/editPasswordLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/colorTextPrimary"
+            android:textColorHint="@color/colorTextHint"
+            app:passwordToggleEnabled="true"
+            android:layout_marginBottom="@dimen/login_spacing_bottom">
+
+            <android.support.design.widget.TextInputEditText
                 android:id="@+id/editPassword"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
                 android:hint="@string/password"
-                android:importantForAutofill="no"
                 android:inputType="textPassword"
                 android:textColor="@color/colorTextPrimary"
                 android:textColorHint="@color/colorTextHint" />
+        </android.support.design.widget.TextInputLayout>
 
-            <TextView
-                android:id="@+id/txtError"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:textColor="@android:color/holo_red_light"
-                android:visibility="invisible"
-                android:textColorHighlight="@color/colorBackground"/>
-
-        </LinearLayout>
-
-        <Button
+        <TextView
+            android:id="@+id/txtError"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/btn_login_enter"
-            android:id="@+id/btnLogin"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="20dp"
-            android:background="@color/colorPrimary" />
-
-        <ProgressBar
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/progressBar"
-            android:indeterminate="true"
-            android:visibility="gone" />
+            android:textColor="@android:color/holo_red_light"
+            android:visibility="invisible"
+            android:textColorHighlight="@color/colorBackground"/>
 
     </LinearLayout>
 
-</RelativeLayout>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/btn_login_enter"
+        android:id="@+id/btnLogin"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="20dp"
+        android:background="@color/colorPrimary" />
+
+    <ProgressBar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/progressBar"
+        android:indeterminate="true"
+        android:visibility="gone" />
+
+</LinearLayout>

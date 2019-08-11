@@ -4,25 +4,35 @@
  */
 package ocr.document.tardo.documentocr.activities;
 
+import android.Manifest;
 import android.accounts.AccountAuthenticatorActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Base64;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.eiqui.odoojson_rpc.JSONRPCClientOdoo;
 import com.eiqui.odoojson_rpc.exceptions.OdooLoginException;
 import com.eiqui.odoojson_rpc.exceptions.OdooSearchException;
+import com.googlecode.tesseract.android.TessBaseAPI;
+
+import org.json.JSONArray;
+import org.json.JSONException;
 
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
@@ -30,6 +40,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -43,11 +55,16 @@ import ocr.document.tardo.documentocr.AppMain;
 import ocr.document.tardo.documentocr.R;
 import ocr.document.tardo.documentocr.utils.Constants;
 
-public class LoginActivity extends AccountAuthenticatorActivity implements OnClickListener {
+import static ocr.document.tardo.documentocr.AppMain.DATA_PATH;
+import static ocr.document.tardo.documentocr.AppMain.TESS_LANG;
+
+public class LoginActivity extends AccountAuthenticatorActivity implements OnClickListener, View.OnFocusChangeListener {
+
+    private final int REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE = 1;
 
     public static String PARAM_LOGOUT = "logout";
     private EditText mEditHost;
-    private EditText mEditDBName;
+    private AutoCompleteTextView mEditDBName;
     private EditText mEditLogin;
     private EditText mEditPass;
     private TextView mTextError;
@@ -86,12 +103,43 @@ public class LoginActivity extends AccountAuthenticatorActivity implements OnCli
         mEditHost.setText(mSettings.getString("Host", ""));
         mEditDBName.setText(mSettings.getString("DBName", ""));
 
+        mEditHost.setOnFocusChangeListener(this);
         mBtnLoginIn.setOnClickListener(this);
+        mEditDBName.setOnClickListener(this);
 
-        // Ignorar login si ya se logeo correctamente
-        if (mSettings.getInt("UserID", -1) > 0)
-            initApp();
+        new GetDBTask().execute(mEditHost.getText().toString());
+
+        // Comprobar que la app tiene permisos suficientes para funcionar correctamente
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE);
+        }  else {
+            initTesseract();
+            // Ignorar login si ya se logeo correctamente
+            if (mSettings.getInt("UserID", -1) > 0)
+                initApp();
+        }
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    initTesseract();
+                    // Ignorar login si ya se logeo correctamente
+                    if (mSettings.getInt("UserID", -1) > 0)
+                        initApp();
+                    Toast.makeText(LoginActivity.this, "Permission Granted!", Toast.LENGTH_SHORT).show();
+                } else {
+                    // TODO: No ser tan duro y mostrar algun mensaje de error
+                    android.os.Process.killProcess(android.os.Process.myPid());
+                    System.exit(0);
+                }
+        }
+    }
+
 
     @Override
     public void onClick(View v) {
@@ -103,7 +151,30 @@ public class LoginActivity extends AccountAuthenticatorActivity implements OnCli
                     mEditPass.getText().toString());
             mTextError.setVisibility(View.INVISIBLE);
             hideControls(Boolean.TRUE);
+        } else if (v.getId() == R.id.editDBName)
+        {
+            mEditDBName.showDropDown();
         }
+    }
+
+    @Override
+    public void onFocusChange(View v, boolean b) {
+        if (!b) {
+            new GetDBTask().execute(mEditHost.getText().toString());
+        }
+    }
+
+    private void initTesseract() {
+        TessBaseAPI tessApi = ((AppMain)getApplication()).getTessApi();
+        tessApi.init(DATA_PATH, TESS_LANG);
+        tessApi.setVariable("load_system_dawg", "F");
+        tessApi.setVariable("load_freq_dawg", "F");
+        tessApi.setVariable("load_unambig_dawg", "F");
+        tessApi.setVariable("load_number_dawg", "F");
+        tessApi.setVariable("load_fixed_length_dawgs", "F");
+        tessApi.setVariable("load_bigram_dawg", "F");
+        tessApi.setVariable("wordrec_enable_assoc", "F");
+        tessApi.setVariable("tessedit_char_whitelist", "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<");
     }
 
     private void logout() {
@@ -113,11 +184,12 @@ public class LoginActivity extends AccountAuthenticatorActivity implements OnCli
         editor.remove("lastIssueID");
         editor.remove("lastMessageID");
         editor.remove("Pass");
-        editor.commit();
+        editor.apply();
     }
 
     private void initApp() {
-        String passwd = new String();
+        hideControls(Boolean.TRUE);
+        String passwd = "";
         try {
             byte[] encrypedPwdBytes = Base64.decode(mSettings.getString("Pass", ""), Base64.NO_WRAP);
             DESKeySpec keySpec = new DESKeySpec(mSettings.getString("rn", "").getBytes());
@@ -150,12 +222,10 @@ public class LoginActivity extends AccountAuthenticatorActivity implements OnCli
         } catch (MalformedURLException e) {
             e.printStackTrace();
             showErrorMessage(getResources().getString(R.string.init_app_error));
+            return;
         }
 
-        new CheckHotelL10NTask().execute();
-
-        startActivity(new Intent(this, ReadModeActivity.class));
-        finish();
+        new CheckAndInitAppTask().execute();
     }
 
     private void hideControls(Boolean state) {
@@ -211,7 +281,6 @@ public class LoginActivity extends AccountAuthenticatorActivity implements OnCli
                     Cipher cipher = Cipher.getInstance("DES");
                     cipher.init(Cipher.ENCRYPT_MODE, key);
                     final String encPasswdBase64 = Base64.encodeToString(cipher.doFinal(cleartext), Base64.NO_WRAP);
-                    Log.v("MITAA", encPasswdBase64);
                     editor.putString("Pass", encPasswdBase64);
                 } catch (InvalidKeyException e) {
                     e.printStackTrace();
@@ -229,7 +298,7 @@ public class LoginActivity extends AccountAuthenticatorActivity implements OnCli
                     e.printStackTrace();
                 }
 
-                editor.commit();
+                editor.apply();
 
                 initApp();
             }
@@ -240,33 +309,67 @@ public class LoginActivity extends AccountAuthenticatorActivity implements OnCli
         }
     }
 
-    private class CheckHotelL10NTask extends AsyncTask<String, Void, Boolean> {
-        private Exception mException;
+    private class CheckAndInitAppTask extends AsyncTask<String, Void, Boolean> {
         private Boolean mHasHotelL10N = false;
 
 
         protected Boolean doInBackground(String... params) {
-            mException = null;
             final JSONRPCClientOdoo OdooClient = ((AppMain)getApplication()).OdooClient();
+            // Check if enable support for hotel_l10n_es
             try {
                 mHasHotelL10N = OdooClient.callCount(
                         "ir.module.module",
                         "[['state', '=', 'installed'], ['name', '=', 'hotel_l10n_es']]") > 0;
             } catch (OdooSearchException e) {
-                mException = e;
+                e.printStackTrace();
             }
             return Boolean.TRUE;
         }
 
         protected void onPostExecute(Boolean res) {
-            if (res) {
-                SharedPreferences.Editor editor = mSettings.edit();
-                editor.putBoolean("HasHotelL10N", mHasHotelL10N);
-                editor.commit();
+            SharedPreferences.Editor editor = mSettings.edit();
+            editor.putBoolean("HasHotelL10N", res && mHasHotelL10N);
+            editor.apply();
+            startActivity(new Intent(LoginActivity.this, ReadModeActivity.class));
+            finish();
+        }
+    }
+
+    private class GetDBTask extends AsyncTask<String, Void, Boolean> {
+
+        private JSONArray mDBList = new JSONArray();
+
+        protected Boolean doInBackground(String... params) {
+            final JSONRPCClientOdoo OdooClient;
+            try {
+                OdooClient = new JSONRPCClientOdoo(params[0]);
+                mDBList = OdooClient.getDBList();
+            } catch (OdooSearchException e) {
+                e.printStackTrace();
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
             }
-            else {
-                showErrorMessage(
-                        (mException != null)?mException.getMessage():getResources().getString(R.string.login_invalid));
+            return Boolean.TRUE;
+        }
+
+        protected void onPostExecute(Boolean res) {
+            ArrayList<String> list = new ArrayList<>();
+            if (null != mDBList) {
+                int len = mDBList.length();
+                for (int i = 0; i < len; ++i) {
+                    try {
+                        list.add(mDBList.get(i).toString());
+                    } catch (JSONException e) {
+                        break;
+                    }
+                }
+            }
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(LoginActivity.this,
+                    android.R.layout.simple_dropdown_item_1line, list);
+            mEditDBName.setAdapter(adapter);
+
+            if (list.size() > 0 && mEditDBName.getText().length() == 0) {
+                mEditDBName.setText(list.get(0));
             }
         }
     }

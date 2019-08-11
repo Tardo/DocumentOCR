@@ -12,6 +12,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.List;
 
 /**
  * Created by uchar on 10/09/16.
@@ -200,6 +201,18 @@ public class JSONRPCClientOdoo {
             jsonArgs.put(new JSONObject(values));
 
             res = callInt("object", "execute", jsonArgs);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            throw new OdooSearchException(e.getMessage());
+        }
+
+        return res;
+    }
+
+    public JSONArray getDBList() throws OdooSearchException {
+        JSONArray res;
+        try {
+            res = callJSONArray("db", "list", new JSONArray());
         } catch (JSONException e) {
             e.printStackTrace();
             throw new OdooSearchException(e.getMessage());
