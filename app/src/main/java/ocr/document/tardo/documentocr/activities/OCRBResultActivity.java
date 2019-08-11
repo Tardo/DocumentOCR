@@ -98,7 +98,7 @@ public class OCRBResultActivity extends Activity implements View.OnClickListener
         } else if (v.getId() == R.id.btnValidate) {
             final Button btnValidate = (Button)v;
             btnValidate.setEnabled(false);
-            btnValidate.setText("Sending...");
+            btnValidate.setText(R.string.sending);
             mBackgroundHandler.post(new RPCCreatePartner(this, ((AppMain)getApplication()).OdooClient()));
         }
     }

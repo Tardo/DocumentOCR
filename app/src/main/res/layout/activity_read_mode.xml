@@ -17,7 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fontFamily="@font/open_sans_bold"
-            android:text="SELECT\nREAD MODE"
+            android:text="@string/select_read_mode"
             android:textAlignment="center"
             android:layout_marginTop="15dp"
             android:textColor="@color/colorTextPrimary"
@@ -68,7 +68,7 @@
                 android:layout_marginBottom="38dp"
                 android:baselineAlignBottom="false"
                 android:clickable="false"
-                android:text="Logout" />
+                android:text="@string/logout" />
 
             <ImageButton
                 android:id="@+id/btnInfo"

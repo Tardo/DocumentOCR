@@ -33,6 +33,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 import de.tsenger.androsmex.mrtd.DG11;
 import de.tsenger.androsmex.mrtd.DG1_Dnie;
@@ -198,7 +199,7 @@ public class DNIeResultActivity extends Activity implements View.OnClickListener
         else if (v.getId() == R.id.btnValidate) {
             final Button btnValidate = (Button)v;
             btnValidate.setEnabled(false);
-            btnValidate.setText("Sending...");
+            btnValidate.setText(R.string.sending);
             mBackgroundHandler.post(new RPCCreatePartner(this, ((AppMain)getApplication()).OdooClient()));
         }
     }
@@ -275,7 +276,7 @@ public class DNIeResultActivity extends Activity implements View.OnClickListener
                 e.printStackTrace();
             }
 
-            DateFormat dtFormat = new SimpleDateFormat("YYYY-MM-dd");
+            DateFormat dtFormat = new SimpleDateFormat("YYYY-MM-dd", Locale.getDefault());
             Date dnieTest = DateHelper.getExpeditionDate(birthday, expiryDate);
             String strExpDate = dtFormat.format(dnieTest);
             String strBirthDate = dtFormat.format(birthday);
@@ -298,7 +299,7 @@ public class DNIeResultActivity extends Activity implements View.OnClickListener
                 String createValues;
                 // Hotel l10 Support
                 if (hasHotelL10N) {
-                    createValues = String.format(
+                    createValues = String.format(Locale.getDefault(),
                             "{'name': '%s', 'image': '%s', 'document_number': '%s', 'birthdate_date': '%s', 'gender': '%s', 'document_expedition_date': '%s', 'code_ine_id': %d, comment: 'Nation: %s'}",
                             name, encodedPhoto, docNumber, strBirthDate, gender, strExpDate, codeIneId, nation);
                 } else {

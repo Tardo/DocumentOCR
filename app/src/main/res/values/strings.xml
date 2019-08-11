@@ -1,7 +1,6 @@
 <resources>
 
-    <string name="app_name">Document OCR</string>
-    <string name="app_title_nfc">DNIe Lectura: NFC</string>
+    <string name="app_name" translatable="false">Document OCR</string>
 
     <string name="back">Back</string>
     <string name="validate">Validate</string>
@@ -12,7 +11,7 @@
     <string name="password">Password</string>
     <string name="btn_login_enter">LOGIN</string>
 
-    <string name="request_permission">This sample needs camera permission.</string>
+    <string name="request_permission">This app needs camera permission.</string>
     <string name="camera_error">This device doesn\'t support Camera2 API.</string>
 
     <string name="credits">Created by Alexandre Díaz - 2019</string>
@@ -32,15 +31,15 @@
     <string name="info_titl_sujeto">PERSON DATA</string>
     <string name="info_name">Name</string>
     <string name="info_surname">Surname</string>
-    <string name="info_numdoc">Num. document</string>
+    <string name="info_numdoc">Document Num.</string>
     <string name="info_caducity">Caducity</string>
     <string name="info_birth">Birthday</string>
     <string name="info_birth_place">Birth place</string>
-    <string name="info_titl_contacto">CONTACT DATA</string>
+    <string name="info_titl_contact">CONTACT DATA</string>
     <string name="info_country">Country</string>
     <string name="info_address">Address</string>
-    <string name="info_provincia">Provincia</string>
-    <string name="info_localidad">Localidad</string>
+    <string name="info_province">Province</string>
+    <string name="info_location">Location</string>
     <string name="info_expedition">Expedition</string>
 
     <string name="op_reinit">Connection lost. Try it again</string>
@@ -81,4 +80,8 @@
 
     <string name="server">Server</string>
     <string name="user_account">User Account</string>
+    <string name="app_title_nfc">DNIe Lectura: NFC</string>
+    <string name="logout">LOGOUT</string>
+    <string name="select_read_mode">SELECT\nREAD MODE</string>
+    <string name="sending">Sending...</string>
 </resources>

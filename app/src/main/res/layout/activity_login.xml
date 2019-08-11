@@ -140,6 +140,7 @@
         android:id="@+id/btnLogin"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="20dp"
+        android:padding="10dp"
         android:background="@color/colorPrimary" />
 
     <ProgressBar

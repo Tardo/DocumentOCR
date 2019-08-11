@@ -303,7 +303,7 @@
 					android:layout_span="2"
                     android:drawablePadding="5sp"
                     android:drawableLeft="@drawable/ic_location_on_black_24dp"
-					android:text="@string/info_titl_contacto"
+					android:text="@string/info_titl_contact"
 					android:textSize="24sp"
 					android:textColor="@color/colorPrimary"
 					android:textStyle="bold" />
@@ -373,7 +373,7 @@
 					android:gravity="left"
 					android:padding="1dp"
                     android:textColor="@color/colorTextPrimary"
-					android:text="@string/info_provincia"
+					android:text="@string/info_province"
 					android:textStyle="bold" />
 
 				<TextView
@@ -397,7 +397,7 @@
 					android:gravity="left"
 					android:padding="1dp"
                     android:textColor="@color/colorTextPrimary"
-					android:text="@string/info_localidad"
+					android:text="@string/info_location"
 					android:textStyle="bold" />
 
 				<TextView
