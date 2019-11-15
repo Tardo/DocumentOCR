@@ -8,6 +8,7 @@ import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
+import android.nfc.Tag;
 import android.os.Environment;
 import android.util.Base64;
 import android.util.Log;
@@ -26,6 +27,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Objects;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -53,7 +55,6 @@ public class AppMain extends Application {
     private TessBaseAPI mTessApi;
 
     private CANSpecDO mSelectedCAN;
-    public boolean mNFCStarted;
 
     public JSONRPCClientOdoo OdooClient() { return mOdooClient; }
 
@@ -75,16 +76,6 @@ public class AppMain extends Application {
     public CANSpecDO getCAN()
     {
         return mSelectedCAN;
-    }
-
-    public boolean isStarted()
-    {
-        return mNFCStarted;
-    }
-
-    public void setStarted(boolean state)
-    {
-        mNFCStarted = state;
     }
 
     public TessBaseAPI getTessApi() { return mTessApi; }
@@ -121,33 +112,21 @@ public class AppMain extends Application {
         //mTessApi.setDebug(true);
 
         // Auto-Start
-        Boolean autoInit = false;
+        boolean autoInit = false;
         int uid = getUID();
         if (uid != -1) {
-            String passwd = new String();
+            String passwd = "";
             try {
                 byte[] encrypedPwdBytes = Base64.decode(mSettings.getString("Pass", ""), Base64.NO_WRAP);
-                DESKeySpec keySpec = new DESKeySpec(mSettings.getString("rn", "").getBytes());
+                DESKeySpec keySpec = new DESKeySpec(Objects.requireNonNull(mSettings.getString("rn", "")).getBytes());
                 SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("DES");
                 SecretKey key = keyFactory.generateSecret(keySpec);
-                Cipher cipher = Cipher.getInstance("DES");
+                Cipher cipher = Cipher.getInstance("DES/OFB32/PKCS5Padding");
                 cipher.init(Cipher.DECRYPT_MODE, key);
                 byte[] plainTextPwdBytes = (cipher.doFinal(encrypedPwdBytes));
                 passwd = new String(plainTextPwdBytes, StandardCharsets.UTF_8);
-            } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
-            } catch (InvalidKeyException e) {
-                e.printStackTrace();
-            } catch (NoSuchPaddingException e) {
-                e.printStackTrace();
-            } catch (BadPaddingException e) {
-                e.printStackTrace();
-            } catch (InvalidKeySpecException e) {
-                e.printStackTrace();
-            } catch (IllegalBlockSizeException e) {
-                e.printStackTrace();
-            } catch (IllegalArgumentException e) {
-                e.printStackTrace();
+            } catch (NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | BadPaddingException | InvalidKeySpecException | IllegalBlockSizeException | IllegalArgumentException e) {
+                e.printStackTrace(); // TODO: It's an error, don't hide & forget it ¬¬
             }
 
             if (!passwd.isEmpty()) {
@@ -156,7 +135,7 @@ public class AppMain extends Application {
                             mSettings.getString("DBName", ""), uid, passwd);
                     autoInit = true;
                 } catch (MalformedURLException e) {
-                    e.printStackTrace();
+                    e.printStackTrace(); // TODO: It's an error, don't hide & forget it ¬¬
                 }
             }
         }

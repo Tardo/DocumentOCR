@@ -13,8 +13,11 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Message;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -23,14 +26,20 @@ import android.widget.Toast;
 import com.eiqui.odoojson_rpc.JSONRPCClientOdoo;
 import com.eiqui.odoojson_rpc.exceptions.OdooSearchException;
 
+import java.util.Objects;
+
 import ocr.document.tardo.documentocr.AppMain;
 import ocr.document.tardo.documentocr.R;
 import ocr.document.tardo.documentocr.utils.Constants;
+import ocr.document.tardo.documentocr.utils.OCRInfo;
 
 public class OCRBResultActivity extends Activity implements View.OnClickListener {
 
+    final private int VALIDATION_FAIL = -1;
+    final private int VALIDATION_OK = 1;
+
     private Button mButtonOCRBBack;
-    private Button mButtonStartRead;
+    private Button mButtonValidate;
 
     private HandlerThread mBackgroundThread;
     private Handler mBackgroundHandler;
@@ -39,12 +48,15 @@ public class OCRBResultActivity extends Activity implements View.OnClickListener
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE,
+                WindowManager.LayoutParams.FLAG_SECURE);
+
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_ocrb_result);
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
-            String[] name = extras.getString("NAME").split("  ");
+            String[] name = Objects.requireNonNull(extras.getString("NAME")).split("\\s\\s");
             String docNumber = extras.getString("DOC_NUMBER");
             String caducity = extras.getString("CADUCITY");
             String birthday = extras.getString("BIRTHDAY");
@@ -54,7 +66,7 @@ public class OCRBResultActivity extends Activity implements View.OnClickListener
             byte[] byteArray = extras.getByteArray("IMAGE_OCRB");
             BitmapFactory.Options opt = new BitmapFactory.Options();
             opt.inMutable = true;
-            Bitmap imgOCR = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length, opt);
+            Bitmap imgOCR = BitmapFactory.decodeByteArray(byteArray, 0, byteArray != null ? byteArray.length : 0, opt);
             String ocrBoxes = extras.getString("OCR_TEXT_BOXES");
 
             TextView tvloc;
@@ -83,10 +95,10 @@ public class OCRBResultActivity extends Activity implements View.OnClickListener
         }
 
         mButtonOCRBBack = findViewById(R.id.btnBack);
-        mButtonStartRead = findViewById(R.id.btnValidate);
+        mButtonValidate = findViewById(R.id.btnValidate);
 
         mButtonOCRBBack.setOnClickListener(this);
-        mButtonStartRead.setOnClickListener(this);
+        mButtonValidate.setOnClickListener(this);
     }
 
     @Override
@@ -118,7 +130,31 @@ public class OCRBResultActivity extends Activity implements View.OnClickListener
     private void startBackgroundThread() {
         mBackgroundThread = new HandlerThread("RPCBackground");
         mBackgroundThread.start();
-        mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
+        mBackgroundHandler = new Handler(mBackgroundThread.getLooper()) {
+            @Override
+            public void handleMessage(Message msg) {
+                switch (msg.what) {
+                    case VALIDATION_OK: {
+                        showToast(getApplicationContext().getString(R.string.jsonrpc_partner_created));
+                        Intent intent = new Intent(OCRBResultActivity.this, ReadModeActivity.class);
+                        startActivity(intent);
+                        finish();
+                        break;
+                    }
+                    case VALIDATION_FAIL:
+                        showToast(getApplicationContext().getString(R.string.jsonrpc_partner_error));
+                        OCRBResultActivity.this.runOnUiThread(new Runnable() {
+                            public void run() {
+                                mButtonValidate.setText(R.string.validate);
+                                mButtonValidate.setEnabled(true);
+                            }
+                        });
+                        break;
+                    default:
+                        break;
+                }
+            }
+        };
     }
 
     private void stopBackgroundThread() {
@@ -134,21 +170,18 @@ public class OCRBResultActivity extends Activity implements View.OnClickListener
 
     private void showToast(final String text) {
         final Activity activity = this;
-        if (activity != null) {
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(activity, text, Toast.LENGTH_SHORT).show();
-                }
-            });
-        }
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(activity, text, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
-    private static class RPCCreatePartner implements Runnable {
+    private class RPCCreatePartner implements Runnable {
 
         final JSONRPCClientOdoo mClient;
         final private OCRBResultActivity ocrbResultActivity;
-        private int mOperationResult;
 
 
         RPCCreatePartner(OCRBResultActivity activity, JSONRPCClientOdoo client) {
@@ -162,49 +195,49 @@ public class OCRBResultActivity extends Activity implements View.OnClickListener
             final SharedPreferences Settings = ocrbResultActivity.getSharedPreferences(Constants.SHARED_PREFS_USER_INFO, Context.MODE_PRIVATE);
             final boolean hasHotelL10N = Settings.getBoolean("HasHotelL10N", false);
             final Bundle extras = ocrbResultActivity.getIntent().getExtras();
-            String name = extras.getString("NAME");
+            String name = Objects.requireNonNull(extras).getString("NAME");
             String docNumber = extras.getString("DOC_NUMBER");
             String oexpedition = extras.getString("OEXPEDITION");
             String obirthday = extras.getString("OBIRTHDAY");
             String gender = extras.getString("GENDER");
             String nation = extras.getString("NATION");
+            int docType = extras.getInt("DOC_TYPE");
+            String docTypeOdoo = docType==OCRInfo.ID_TYPE_DNI?"DNI":"Passport";
 
             String ogender = "other";
-            if ('M' == gender.charAt(0)) {
+            if ('M' == Objects.requireNonNull(gender).charAt(0)) {
                 ogender = "male";
             } else if ('F' == gender.charAt(0)) {
                 ogender = "female";
             }
 
+            int state = VALIDATION_FAIL;
             try {
                 String createValues;
                 // Hotel L10N Support
                 if (hasHotelL10N) {
                     createValues = String.format(
-                            "{'name': '%s', 'document_number': '%s', 'birthdate_date': '%s', 'gender': '%s', 'document_expedition_date': '%s', comment: 'Nation: %s'}",
-                            name, docNumber, obirthday, ogender, oexpedition, nation);
+                            "{'name': \"%s\", 'document_number': \"%s\", 'birthdate_date': \"%s\", 'gender': \"%s\", 'document_expedition_date': \"%s\", 'document_type': \"%c\", 'comment': \"Nation: %s\"}",
+                            name, docNumber, obirthday, ogender, oexpedition, docTypeOdoo.charAt(0), nation);
                 } else {
                     createValues = String.format(
-                            "{'name': '%s', 'vat': '%s', comment: 'Birthday: %s\nGender: %s\nNation: %s\nDocument Expedition Date: %s'}",
-                            name, docNumber, obirthday, ogender, nation, oexpedition);
+                            "{'name': \"%s\", 'vat': \"%s\", 'comment': \"Birthday: %s\nGender: %s\nNation: %s\nDocument Expedition Date: %s\nDocument Type: %s\"}",
+                            name, docNumber, obirthday, ogender, nation, oexpedition, docTypeOdoo);
                 }
 
-                mOperationResult = mClient.callCreate("res.partner", createValues);
+                Log.v("MMM", "PArams: " + createValues);
+                final int mOperationResult = mClient.callCreate("res.partner", createValues);
 
                 if (mOperationResult != JSONRPCClientOdoo.ERROR) {
-                    ocrbResultActivity.showToast(ocrbResultActivity.getApplicationContext().getString(R.string.jsonrpc_partner_created));
-                    Intent intent = new Intent(ocrbResultActivity, ReadModeActivity.class);
-                    ocrbResultActivity.startActivity(intent);
-                    ocrbResultActivity.finish();
-                } else {
-                    ocrbResultActivity.showToast(ocrbResultActivity.getApplicationContext().getString(R.string.jsonrpc_partner_error));
-                    final Button btnValidate = ocrbResultActivity.findViewById(R.id.btnValidate);
-                    btnValidate.setText(R.string.validate);
-                    btnValidate.setEnabled(true);
+                    //mBackgroundHandler.
+                    state = VALIDATION_OK;
                 }
             } catch (OdooSearchException e) {
-                // Do Nothing
+                e.printStackTrace(); // TODO: It's an error, don't hide & forget it ¬¬
             }
+
+            Message completeMessage = mBackgroundHandler.obtainMessage(state, "");
+            completeMessage.sendToTarget();
         }
     }
 }

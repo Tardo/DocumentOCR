@@ -5,63 +5,59 @@
     android:background="@drawable/background_odoo"
     android:orientation="vertical">
 
+    <ImageView
+        android:id="@+id/imgResult"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="160dp"
+        android:contentDescription="@string/result_nok_title"
+        android:adjustViewBounds="true"
+        android:src="@drawable/checked_false"
+        android:visibility="visible" />
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/result1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="50dip"
+        android:layout_marginTop="20dp"
+        android:gravity="start"
+        android:text="@string/result_nok_title"
+        android:textColor="@color/colorPrimary"
+        android:textSize="22sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/infoResult"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:layout_marginStart="50dip"
+        android:layout_marginTop="10dip"
+        android:layout_marginEnd="10dip"
+        android:gravity="start"
+        android:text="@string/result_nok_description"
+        android:textColor="@color/colorTextPrimary"
+        android:textSize="18sp"
+        android:textStyle="bold" />
 
-        <ImageView
-            android:id="@+id/imgResult"
-            android:layout_width="wrap_content"
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/buttons_height"
+        android:background="@color/colorBackground">
+
+        <Button
+            android:id="@+id/btnBack"
+            android:layout_width="@dimen/button_width"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="160dp"
-            android:adjustViewBounds="true"
-            android:src="@drawable/checked_false"
-            android:visibility="visible" />
-
-        <TextView
-            android:id="@+id/result1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="50dip"
-            android:layout_marginTop="20dp"
-            android:gravity="left"
-            android:text="@string/result_nok_title"
-            android:textColor="@color/colorPrimary"
-            android:textSize="22sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/infoResult"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="left"
-            android:layout_marginLeft="50dip"
-            android:layout_marginTop="10dip"
-            android:layout_marginRight="10dip"
-            android:gravity="left"
-            android:text="@string/result_nok_description"
-            android:textColor="@color/colorTextPrimary"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <Button
-                android:id="@+id/btnBack"
-                android:layout_width="110dp"
-                android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_alignParentBottom="true"
-                android:layout_gravity="bottom"
-                android:layout_marginStart="10dp"
-                android:layout_marginBottom="35dp"
-                android:background="@color/colorPrimary"
-                android:text="@string/back" />
-        </FrameLayout>
-    </LinearLayout>
+            android:layout_gravity="bottom"
+            android:background="@color/colorPrimary"
+            android:text="@string/back" />
+    </FrameLayout>
 </LinearLayout>

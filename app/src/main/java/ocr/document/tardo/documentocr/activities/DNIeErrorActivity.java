@@ -33,7 +33,7 @@ public class DNIeErrorActivity extends Activity {
 			tvloc.setText(mError);
 		}
 
-		Button btnNFCBack = (Button)findViewById(R.id.btnBack);
+		Button btnNFCBack = findViewById(R.id.btnBack);
 		btnNFCBack.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 			Intent intent = new Intent(DNIeErrorActivity.this, DNIeCANActivity.class);

@@ -4,14 +4,12 @@
  */
 package ocr.document.tardo.documentocr.activities;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.nfc.NfcAdapter;
 import android.nfc.NfcManager;
 import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -69,13 +67,17 @@ public class ReadModeActivity extends Activity implements OnClickListener {
             PackageManager pm = getPackageManager();
 
             if (pm.hasSystemFeature(PackageManager.FEATURE_NFC)) {
-                NfcManager manager = (NfcManager) getSystemService(NFC_SERVICE);
-                NfcAdapter adapter = manager.getDefaultAdapter();
-                if (null != adapter && adapter.isEnabled()) {
-                    Intent intent = new Intent(ReadModeActivity.this, DNIeCANActivity.class);
-                    startActivity(intent);
-                } else {
-                    showToast(getString(R.string.error_disabled_nfc));
+                try {
+                    NfcManager manager = (NfcManager) getSystemService(NFC_SERVICE);
+                    NfcAdapter adapter = manager.getDefaultAdapter();
+                    if (null != adapter && adapter.isEnabled()) {
+                        Intent intent = new Intent(ReadModeActivity.this, DNIeCANActivity.class);
+                        startActivity(intent);
+                    } else {
+                        showToast(getString(R.string.error_disabled_nfc));
+                    }
+                } catch (NullPointerException e) {
+                    showToast(getString(R.string.error_no_nfc));
                 }
             } else {
                 showToast(getString(R.string.error_no_nfc));

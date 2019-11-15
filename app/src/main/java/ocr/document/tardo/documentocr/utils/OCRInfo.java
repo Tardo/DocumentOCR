@@ -7,9 +7,8 @@ package ocr.document.tardo.documentocr.utils;
 import java.util.Date;
 
 public class OCRInfo {
-    public static final int ID_TYPE_ELECTRONIC = 1;
-    public static final int ID_TYPE_TRADITIONAL = 2;
-    public static final int ID_TYPE_PASSPORT = 3;
+    public static final int ID_TYPE_DNI = 1;
+    public static final int ID_TYPE_PASSPORT = 2;
 
     public String mRaw;
 
@@ -23,6 +22,6 @@ public class OCRInfo {
     public int mIDType;
 
     OCRInfo() {
-        mIDType = ID_TYPE_ELECTRONIC;
+        mIDType = ID_TYPE_DNI;
     }
 }

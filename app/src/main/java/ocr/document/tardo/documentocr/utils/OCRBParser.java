@@ -9,6 +9,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -52,12 +53,12 @@ public class OCRBParser {
     public static OCRInfo run(String data) {
         OCRInfo result = null;
 
-        ArrayList<String> possibleSexValues = new ArrayList<String>();
+        ArrayList<String> possibleSexValues = new ArrayList<>();
         possibleSexValues.add("F");
         possibleSexValues.add("M");
         possibleSexValues.add("<");
 
-        String[] lines = data.split(System.getProperty("line.separator"));
+        String[] lines = data.split(Objects.requireNonNull(System.getProperty("line.separator")));
         try {
             if ('<' != lines[0].charAt(lines[0].length() - 7)) {
                 // DNIe
@@ -91,33 +92,33 @@ public class OCRBParser {
                 String zoneName = lines[2].substring(zones[12][0], zones[12][1]);
 
                 //Basic Info
-                final Boolean DNIReaded = isNifNie(zoneDNI);
+                final boolean DNIReaded = isNifNie(zoneDNI);
 
                 // Verify Card Number
                 int verificationCode = checkDigits(zoneCardNumber);
                 int verCode = Integer.parseInt(zoneCardNumberVer);
-                final Boolean CardNumberReaded = (verificationCode == verCode);
+                final boolean CardNumberReaded = (verificationCode == verCode);
 
                 // Verify BirthDate
                 verificationCode = checkDigits(zoneBirthDate);
                 verCode = Integer.parseInt(zoneBirthDateVer);
-                final Boolean DateBirthReaded = (verificationCode == verCode);
+                final boolean DateBirthReaded = (verificationCode == verCode);
 
                 // Verify OutDate
                 verificationCode = checkDigits(zoneOutDate);
                 verCode = Integer.parseInt(zoneOutDateVer);
-                final Boolean OutDateReaded = (verificationCode == verCode);
+                final boolean OutDateReaded = (verificationCode == verCode);
 
                 // Verify Sex
-                final Boolean SexReaded = possibleSexValues.contains(zoneGender);
+                final boolean SexReaded = possibleSexValues.contains(zoneGender);
 
                 // Verify Master
                 String toVerify = zoneCardNumber + zoneCardNumberVer + zoneDNI + zoneBirthDate + zoneBirthDateVer + zoneOutDate + zoneOutDateVer;
                 verificationCode = checkDigits(toVerify);
                 verCode = Integer.parseInt(lines[1].substring(zones[11][0], zones[11][1]));
-                final Boolean MasterVerificationReaded = (verificationCode == verCode);
+                final boolean MasterVerificationReaded = (verificationCode == verCode);
 
-                final Boolean allOk = (!zoneName.isEmpty() && CardNumberReaded && DateBirthReaded && OutDateReaded && MasterVerificationReaded && DNIReaded && SexReaded);
+                final boolean allOk = (!zoneName.isEmpty() && CardNumberReaded && DateBirthReaded && OutDateReaded && MasterVerificationReaded && DNIReaded && SexReaded);
                 if (allOk) {
                     result = new OCRInfo();
                     result.mRaw = data;
@@ -163,32 +164,32 @@ public class OCRBParser {
                 //Basic Info
                 int verificationCode = checkDigits(zoneDNI);
                 int verCode = Integer.parseInt(zoneDNIVer);
-                final Boolean DNIReaded = (verificationCode == verCode) && isNifNie(zoneDNI);
+                final boolean DNIReaded = (verificationCode == verCode) && isNifNie(zoneDNI);
 
                 // Verify BirthDate
                 verificationCode = checkDigits(zoneBirthDate);
                 verCode = Integer.parseInt(zoneBirthDateVer);
-                final Boolean DateBirthReaded = (verificationCode == verCode);
+                final boolean DateBirthReaded = (verificationCode == verCode);
 
                 // Verify OutDate
                 verificationCode = checkDigits(zoneOutDate);
                 verCode = Integer.parseInt(zoneOutDateVer);
-                final Boolean OutDateReaded = (verificationCode == verCode);
+                final boolean OutDateReaded = (verificationCode == verCode);
 
                 // Verify Sex
-                final Boolean SexReaded = possibleSexValues.contains(zoneGender);
+                final boolean SexReaded = possibleSexValues.contains(zoneGender);
 
                 // Verify Master
                 String toVerify = zoneDNI + zoneDNIVer + zoneBirthDate + zoneBirthDateVer + zoneOutDate + zoneOutDateVer;
                 verificationCode = checkDigits(toVerify);
                 verCode = Integer.parseInt(lines[1].substring(zones[10][0], zones[10][1]));
-                final Boolean MasterVerificationReaded = (verificationCode == verCode);
+                final boolean MasterVerificationReaded = (verificationCode == verCode);
 
-                final Boolean allOk = (!zoneName.isEmpty() && DNIReaded && DateBirthReaded && OutDateReaded && MasterVerificationReaded && SexReaded);
+                final boolean allOk = (!zoneName.isEmpty() && DNIReaded && DateBirthReaded && OutDateReaded && MasterVerificationReaded && SexReaded);
                 if (allOk) {
                     result = new OCRInfo();
                     result.mRaw = data;
-                    result.mIDType = OCRInfo.ID_TYPE_TRADITIONAL;
+                    result.mIDType = OCRInfo.ID_TYPE_DNI;
                     result.mName = zoneName.replaceAll("<", " ");
                     result.mDNI = zoneDNI;
                     result.mCountry = zoneCountry;
@@ -236,33 +237,33 @@ public class OCRBParser {
                 // Verify Passport
                 int verificationCode = checkDigits(zonePassportNum);
                 int verCode = Integer.parseInt(zonePassportNumVer);
-                final Boolean PassportReaded = (verificationCode == verCode);
+                final boolean PassportReaded = (verificationCode == verCode);
 
                 // Verify Birthday
                 verificationCode = checkDigits(zoneBirthDate);
                 verCode = Integer.parseInt(zoneBirthDateVer);
-                final Boolean DateBirthReaded = (verificationCode == verCode);
+                final boolean DateBirthReaded = (verificationCode == verCode);
 
                 // Verify OutDate
                 verificationCode = checkDigits(zoneOutDate);
                 verCode = Integer.parseInt(zoneOutDateVer);
-                final Boolean OutDateReaded = (verificationCode == verCode);
+                final boolean OutDateReaded = (verificationCode == verCode);
 
                 // Verify DNI
                 verificationCode = checkDigits(zoneDNI);
                 verCode = Integer.parseInt(zoneDNIVer);
-                final Boolean DNIReaded = (verificationCode == verCode);
+                final boolean DNIReaded = (verificationCode == verCode);
 
                 // Verify Sex
-                final Boolean SexReaded = possibleSexValues.contains(zoneGender);
+                final boolean SexReaded = possibleSexValues.contains(zoneGender);
 
                 // Verify Master
                 verificationCode = checkDigits(zonePassportNum + zonePassportNumVer + zoneBirthDate + zoneBirthDateVer + zoneOutDate + zoneOutDateVer + zoneDNI + zoneDNIVer);
                 verCode = Integer.parseInt(zoneMasterVer);
-                final Boolean MasterVerificationReaded = (verificationCode == verCode);
+                final boolean MasterVerificationReaded = (verificationCode == verCode);
 
 
-                final Boolean allOk = (!zoneName.isEmpty() && PassportReaded && DateBirthReaded && OutDateReaded && DNIReaded && MasterVerificationReaded && SexReaded);
+                final boolean allOk = (!zoneName.isEmpty() && PassportReaded && DateBirthReaded && OutDateReaded && DNIReaded && MasterVerificationReaded && SexReaded);
                 if (allOk) {
                     result = new OCRInfo();
                     result.mIDType = OCRInfo.ID_TYPE_PASSPORT;
@@ -278,13 +279,7 @@ public class OCRBParser {
                     result.mEndDate = df.parse(zoneOutDate);
                 }
             }
-        } catch (NumberFormatException e) {
-            e.printStackTrace();
-        } catch (StringIndexOutOfBoundsException e) {
-            e.printStackTrace();
-        } catch (ArrayIndexOutOfBoundsException e) {
-            e.printStackTrace();
-        } catch (ParseException e) {
+        } catch (NumberFormatException | StringIndexOutOfBoundsException | ArrayIndexOutOfBoundsException | ParseException e) {
             e.printStackTrace();
         }
 

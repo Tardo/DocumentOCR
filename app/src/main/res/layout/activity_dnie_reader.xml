@@ -2,26 +2,55 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:background="@drawable/background_odoo">
 
-    <ImageView
-        android:id="@+id/imgResult"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        android:layout_centerHorizontal="true"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="160dp"
-        android:adjustViewBounds="true"
-        android:src="@drawable/btn_aproxdnie"
-        android:visibility="visible" />
+    <FrameLayout
+        android:id="@+id/layoutResult"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="60dp"
+        android:layout_gravity="center_horizontal">
+
+        <ImageView
+            android:id="@+id/animInfo"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:src="@drawable/animated_start_read_dnie"
+            android:visibility="visible"
+            android:contentDescription="@string/no_description"/>
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/photo"
+            android:layout_width="180dp"
+            android:layout_height="180dp"
+            android:layout_gravity="center"
+            android:src="@drawable/noface"
+            android:background="@drawable/animated_start_read_dnie"
+            android:visibility="invisible"
+            app:civ_border_width="2dp"
+            app:civ_border_color="#00FF00"/>
+
+        <TextView
+            android:id="@+id/textInfo"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_margin="10dip"
+            android:breakStrategy="high_quality"
+            android:gravity="center"
+            android:text="@string/op_approximate_dnie"
+            android:textColor="@color/colorBackground"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:visibility="visible" />
+    </FrameLayout>
 
     <TextView
         android:id="@+id/textResult"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/imgResult"
-        android:layout_centerHorizontal="true"
         android:layout_gravity="center"
         android:layout_margin="10dip"
         android:gravity="center"
@@ -32,35 +61,87 @@
         android:visibility="visible" />
 
     <TextView
-        android:id="@+id/infoResult"
+        android:id="@+id/textResultExtra"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/textResult"
-        android:layout_centerHorizontal="true"
         android:layout_gravity="center"
         android:layout_margin="10dip"
         android:gravity="center"
         android:text=""
-        android:textColor="#0A5D8D"
+        android:textColor="#FF9800"
         android:textSize="18sp"
         android:textStyle="bold"
         android:visibility="invisible" />
 
-    <FrameLayout
+    <ImageView
+        android:id="@+id/animDNIe_ball_1"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_gravity="center"
+        android:src="@drawable/animated_bubble_dnie"
+        android:visibility="invisible"
+        android:contentDescription="@string/no_description" />
+    <ImageView
+        android:id="@+id/animDNIe_ball_2"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_gravity="center"
+        android:translationX="25dp"
+        android:src="@drawable/animated_bubble_dnie"
+        android:visibility="invisible"
+        android:contentDescription="@string/no_description" />
+    <ImageView
+        android:id="@+id/animDNIe_ball_3"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_gravity="center"
+        android:translationX="-25dp"
+        android:src="@drawable/animated_bubble_dnie"
+        android:visibility="invisible"
+        android:contentDescription="@string/no_description" />
+
+
+    <ImageView
+        android:id="@+id/imgDNIe"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_gravity="center"
+        android:translationY="-200px"
+        android:src="@drawable/dnie_can"
+        android:rotation="90"
+        android:visibility="visible"
+        android:contentDescription="@string/no_description" />
+
+
+    <Space
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/buttons_height"
+        android:background="@color/colorBackground">
 
         <Button
             android:id="@+id/btnBack"
-            android:layout_width="110dp"
+            android:layout_width="@dimen/button_width"
             android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:layout_alignParentBottom="true"
             android:layout_gravity="bottom"
-            android:layout_marginStart="10dp"
-            android:layout_marginBottom="35dp"
             android:background="@color/colorPrimary"
             android:text="@string/back" />
-    </FrameLayout>
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <Button
+            android:id="@+id/btnNext"
+            android:layout_width="@dimen/button_width"
+            android:layout_height="wrap_content"
+            android:background="@color/colorPrimary"
+            android:text="@string/next"
+            android:visibility="invisible"/>
+    </LinearLayout>
 
 </LinearLayout>

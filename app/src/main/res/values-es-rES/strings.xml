@@ -14,10 +14,10 @@
     <string name="hostname">Dirección Servidor</string>
     <string name="info_address">Dirección</string>
     <string name="info_app_message">Fondo Europeo de Desarrollo Regional. Una forma de hacer Europa.</string>
-    <string name="info_birth">Cumpleaños</string>
+    <string name="info_birth">Fecha de Nacimiento</string>
     <string name="info_birth_place">Lugar de Nacimiento</string>
     <string name="info_caducity">Caducidad</string>
-    <string name="info_country">Pais</string>
+    <string name="info_country">País</string>
     <string name="info_expedition">Expedición</string>
     <string name="info_expiry_permanent">Permanente (>=70 Años)</string>
     <string name="info_genre">Género</string>
@@ -29,7 +29,7 @@
     <string name="info_surname">Apellidos</string>
     <string name="info_titl_contact">DATOS DE CONTACTO</string>
     <string name="info_titl_sujeto">DATOS DE IDENTIFICACIÓN</string>
-    <string name="init_app_error">Error inicializando la aplicación :S ...</string>
+    <string name="init_app_error">Error inicializando la aplicación :S &#8230;</string>
     <string name="jsonrpc_partner_created">Contacto Creado Correctamente!</string>
     <string name="jsonrpc_partner_error">Error! No se ha podido crear el nuevo contacto :/ Porfavor, intentelo de nuevo.</string>
     <string name="login">Nombre de Usuario</string>
@@ -38,15 +38,15 @@
     <string name="nfc_error_files">Un error ha ocurrido mientras se leían los archivos:</string>
     <string name="nfc_error_lost">Error de comunicación. La conexión con el DNIe se ha perdido.</string>
     <string name="nfc_error_read">Un error ha ocurrido mientra se leían los DG</string>
-    <string name="nfc_reading">Leyendo datos...</string>
-    <string name="nfc_reading_photo">Leyendo foto...</string>
-    <string name="nfc_reading_signature">Leyendo firma...</string>
+    <string name="nfc_reading">Leyendo datos&#8230;</string>
+    <string name="nfc_reading_photo">Leyendo foto&#8230;</string>
+    <string name="nfc_reading_signature">Leyendo firma&#8230;</string>
     <string name="op_can_text2">CAN es el indentificador que te permite establecer la conexión con el DNIe. Se encuentra en el frontal del documento</string>
-    <string name="op_dgtinit2">Esperando DNIe...</string>
+    <string name="op_dgtinit2">Esperando DNIe&#8230;</string>
     <string name="op_reinit">Conexión perdida. Inténtelo de nuevo</string>
     <string name="password">Contraseña</string>
     <string name="process_msg_dni">Accediendo al DNIe</string>
-    <string name="process_msg_lectura">Leyendo DNIe...</string>
+    <string name="process_msg_lectura">Leyendo DNIe&#8230;</string>
     <string name="process_title">DNIe versión 3.0</string>
     <string name="result_nok_description">La operación no se ha completado con éxito</string>
     <string name="result_nok_title">Error en la Operación</string>
@@ -64,5 +64,20 @@
     <string name="request_permission">Esta aplicación necesita permisos para la cámara.</string>
     <string name="logout">CERRAR SESIÓN</string>
     <string name="select_read_mode">SELECCIONA\nMODO DE LECTURA</string>
-    <string name="sending">Enviando...</string>
+    <string name="sending">Enviando&#8230;</string>
+    <string name="insert_can">Inserte CAN</string>
+    <string name="position_can">Posición del CAN</string>
+    <string name="alda_hotels">Alada Hotels</string>
+    <string name="camara_sdc">Cámara de Comercio de Santiago de Compostela</string>
+    <string name="european_union">Unión Europea</string>
+    <string name="ocrb_image_section">OCR-B Sección Imagen</string>
+    <string name="user_photo">Foto Usuario</string>
+    <string name="user_sign">Firma Usuario</string>
+    <string name="nfc_error">Oops, Error! No se puede inicializar el lector NFC</string>
+    <string name="nfc_read_dnie">LEER DNIe</string>
+    <string name="op_finished">DNIe leído satisfactoriamente :)</string>
+    <string name="op_finished_info">Por favor, retire el documento del lector</string>
+    <string name="next">Siguiente</string>
+    <string name="op_approximate_dnie">Aproxime el DNIe al dispositivo</string>
+    <string name="no_description">Sin Descripción</string>
 </resources>

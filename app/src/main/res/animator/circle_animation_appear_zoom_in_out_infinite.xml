@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:interpolator="@android:anim/accelerate_interpolator"
+    android:ordering="sequentially"
+    android:shareInterpolator="false">
+
+    <objectAnimator
+        android:valueType="floatType">
+        <propertyValuesHolder android:propertyName="pivotX" android:valueFrom="12" android:valueTo="12"/>
+        <propertyValuesHolder android:propertyName="pivotY" android:valueFrom="12" android:valueTo="12"/>
+    </objectAnimator>
+
+    <objectAnimator
+        android:duration="800"
+        android:valueType="floatType">
+        <propertyValuesHolder android:propertyName="scaleX" android:valueFrom="1.0" android:valueTo="1.2"/>
+        <propertyValuesHolder android:propertyName="scaleY" android:valueFrom="1.0" android:valueTo="1.2"/>
+    </objectAnimator>
+
+    <objectAnimator
+        android:duration="2000"
+        android:valueType="floatType"
+        android:repeatMode="reverse"
+        android:repeatCount="infinite">
+        <propertyValuesHolder android:propertyName="scaleX" android:valueFrom="1.2" android:valueTo="1.1"/>
+        <propertyValuesHolder android:propertyName="scaleY" android:valueFrom="1.2" android:valueTo="1.1"/>
+    </objectAnimator>
+
+</set>

@@ -7,7 +7,9 @@ package ocr.document.tardo.documentocr.activities;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.ImageView;
 
 import java.io.ByteArrayOutputStream;
 import java.text.DateFormat;
@@ -33,11 +35,12 @@ public class OCRBReaderActivity extends AppCompatActivity {
         }
     }
 
-    public void printOCRResults(OCRInfo ocrInfo, Bitmap imgOCR, String boxes) {
+    public void printOCRResults(OCRInfo ocrInfo, Bitmap imgOCR, String boxes, ImageView view) {
         DateFormat df = DateFormat.getDateInstance(2);
         DateFormat odf = new SimpleDateFormat("YYYY-MM-dd", Locale.getDefault());
 
         Bundle bundle = new Bundle();
+        bundle.putInt("DOC_TYPE", ocrInfo.mIDType);
         bundle.putString("NAME", ocrInfo.mName);
         bundle.putString("DOC_NUMBER", ocrInfo.mDNI);
         bundle.putString("GENDER", ocrInfo.mGender);
@@ -65,7 +68,9 @@ public class OCRBReaderActivity extends AppCompatActivity {
 
         Intent myResultIntent = new Intent(OCRBReaderActivity.this, OCRBResultActivity.class);
         myResultIntent.putExtras(bundle);
-        startActivity(myResultIntent);
+        ActivityOptionsCompat options = ActivityOptionsCompat.
+                makeSceneTransitionAnimation(this, view, "ocr-img");
+        startActivity(myResultIntent, options.toBundle());
         finish();
     }
 

@@ -34,6 +34,7 @@ import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.ImageReader;
+import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -65,6 +66,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Scanner;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -172,6 +174,8 @@ public class OCRBReaderFragment extends Fragment
     private OCRTaskInfo mOCRTaskInfo = new OCRTaskInfo();
     private Boolean mOCRReaded;
 
+    private MediaPlayer mSoundCamera;
+
     private CameraCaptureSession.CaptureCallback mCaptureCallback
             = new CameraCaptureSession.CaptureCallback() {
 
@@ -179,7 +183,7 @@ public class OCRBReaderFragment extends Fragment
             if (mState == STATE_PREVIEW) {
                 if (null == mOCRTaskInfo.mOCRInfo && !mOCRTaskInfo.mRunning) {
                     mOCRReaded = false;
-                    final TessBaseAPI tessApi = ((AppMain)getActivity().getApplication()).getTessApi();
+                    final TessBaseAPI tessApi = ((AppMain) Objects.requireNonNull(getActivity()).getApplication()).getTessApi();
                     mBackgroundHandler.postAtFrontOfQueue(new OCRTask(mTextureView.getBitmap(), mCropArea, tessApi, mOCRTaskInfo));
                     mOCRTaskInfo.mRunning = true;
                 } else if (null != mOCRTaskInfo.mOCRInfo && !mOCRReaded) {
@@ -187,11 +191,13 @@ public class OCRBReaderFragment extends Fragment
                     mBackgroundHandler.removeCallbacksAndMessages(null);
                     mOCRReaded = true;
 
-                    getActivity().runOnUiThread(new Runnable() {
+                    Objects.requireNonNull(getActivity()).runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             OCRBReaderActivity activity = (OCRBReaderActivity)getActivity();
-                            activity.printOCRResults(mOCRTaskInfo.mOCRInfo, mOCRTaskInfo.mOCRImage, mOCRTaskInfo.mOCRBoxes);
+                            mSoundCamera.start();
+                            mVisor.setImageBitmap(mOCRTaskInfo.mOCRImage);
+                            activity.printOCRResults(mOCRTaskInfo.mOCRInfo, mOCRTaskInfo.mOCRImage, mOCRTaskInfo.mOCRBoxes, mVisor);
                         }
                     });
                 }
@@ -203,10 +209,10 @@ public class OCRBReaderFragment extends Fragment
                     Scanner scanner = new Scanner(mOCRTaskInfo.mOCRBoxes);
                     while (scanner.hasNext()) {
                         scanner.next(); // Letter
-                        final Integer x = mCropArea.left + scanner.nextBigInteger().intValue();
-                        final Integer y = mCropArea.top + (mCropArea.height()-scanner.nextBigInteger().intValue());
-                        final Integer w = mCropArea.left + scanner.nextBigInteger().intValue();
-                        final Integer h = mCropArea.top + (mCropArea.height()-scanner.nextBigInteger().intValue());
+                        final int x = mCropArea.left + scanner.nextBigInteger().intValue();
+                        final int y = mCropArea.top + (mCropArea.height()-scanner.nextBigInteger().intValue());
+                        final int w = mCropArea.left + scanner.nextBigInteger().intValue();
+                        final int h = mCropArea.top + (mCropArea.height()-scanner.nextBigInteger().intValue());
                         surfaceCanvas.drawRect(new Rect(x, y, w, h), mPaintOCRRect);
                         scanner.next(); // Unknown
                     }
@@ -245,7 +251,7 @@ public class OCRBReaderFragment extends Fragment
 
 
     public void vibrate(final int milis) {
-        Vibrator v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
+        Vibrator v = (Vibrator) Objects.requireNonNull(getActivity()).getSystemService(Context.VIBRATOR_SERVICE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             v.vibrate(VibrationEffect.createOneShot(milis, VibrationEffect.DEFAULT_AMPLITUDE));
         } else {
@@ -311,6 +317,9 @@ public class OCRBReaderFragment extends Fragment
         mPaintOCRRect = new Paint(Paint.ANTI_ALIAS_FLAG);
         mPaintOCRRect.setColor(Color.WHITE);
         mPaintOCRRect.setAlpha(200);
+
+        // Sounds
+        mSoundCamera = MediaPlayer.create(this.getActivity(), R.raw.camera);
     }
 
     @Override
@@ -366,7 +375,7 @@ public class OCRBReaderFragment extends Fragment
     @SuppressWarnings("SuspiciousNameCombination")
     private void setUpCameraOutputs(int width, int height) {
         Activity activity = getActivity();
-        CameraManager manager = (CameraManager) activity.getSystemService(Context.CAMERA_SERVICE);
+        CameraManager manager = (CameraManager) Objects.requireNonNull(activity).getSystemService(Context.CAMERA_SERVICE);
         try {
             for (String cameraId : manager.getCameraIdList()) {
                 CameraCharacteristics characteristics
@@ -472,7 +481,7 @@ public class OCRBReaderFragment extends Fragment
     }
 
     private void openCamera(int width, int height) {
-        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA)
+        if (ContextCompat.checkSelfPermission(Objects.requireNonNull(getActivity()), Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
             requestCameraPermission();
             return;
@@ -652,11 +661,11 @@ public class OCRBReaderFragment extends Fragment
         public Dialog onCreateDialog(Bundle savedInstanceState) {
             final Activity activity = getActivity();
             return new AlertDialog.Builder(activity)
-                    .setMessage(getArguments().getString(ARG_MESSAGE))
+                    .setMessage(Objects.requireNonNull(getArguments()).getString(ARG_MESSAGE))
                     .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
-                            activity.finish();
+                            Objects.requireNonNull(activity).finish();
                         }
                     })
                     .create();
@@ -675,7 +684,7 @@ public class OCRBReaderFragment extends Fragment
                     .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            parent.requestPermissions(new String[]{Manifest.permission.CAMERA},
+                            Objects.requireNonNull(parent).requestPermissions(new String[]{Manifest.permission.CAMERA},
                                     REQUEST_CAMERA_PERMISSION);
                         }
                     })
@@ -683,7 +692,7 @@ public class OCRBReaderFragment extends Fragment
                             new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    Activity activity = parent.getActivity();
+                                    Activity activity = Objects.requireNonNull(parent).getActivity();
                                     if (activity != null) {
                                         activity.finish();
                                     }

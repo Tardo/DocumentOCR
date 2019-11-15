@@ -8,7 +8,7 @@ package ocr.document.tardo.documentocr.activities;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
+import android.nfc.Tag;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -18,11 +18,11 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 import de.tsenger.androsmex.data.CANSpecDO;
 import ocr.document.tardo.documentocr.AppMain;
 import ocr.document.tardo.documentocr.R;
-import ocr.document.tardo.documentocr.components.NFCOperationsEncKitKat;
 
 public class DNIeCANActivity extends Activity implements OnClickListener {
 
@@ -33,6 +33,7 @@ public class DNIeCANActivity extends Activity implements OnClickListener {
     private Button mButtonStartRead;
 
 	private Context mContext = null;
+	private Tag mFromTag = null;
 
 	
 	@Override
@@ -44,7 +45,7 @@ public class DNIeCANActivity extends Activity implements OnClickListener {
         setContentView(R.layout.activity_dnie_can);
 
 
-        final Button btnSolicitar = (Button)findViewById(R.id.btnBack);
+        final Button btnSolicitar = findViewById(R.id.btnBack);
         btnSolicitar.setOnClickListener(new OnClickListener()
         {
             public void onClick(View v) {
@@ -66,19 +67,18 @@ public class DNIeCANActivity extends Activity implements OnClickListener {
 		
 		if (requestCode == REQ_EDIT_NEW_CAN) {
 			if (resultCode == RESULT_OK) {
-				CANSpecDO can = data.getExtras().getParcelable( CANSpecDO.EXTRA_CAN );
-				read(can);
+				try {
+					CANSpecDO can = Objects.requireNonNull(data.getExtras()).getParcelable(CANSpecDO.EXTRA_CAN);
+					read(can);
+				} catch (NullPointerException e) {
+					e.printStackTrace(); // TODO: It's an error, don't hide & forget it ¬¬
+				}
 			}
 		}
-		else if ( requestCode == REQ_READ_PP) {
+		else if (requestCode == REQ_READ_PP) {
 			if (resultCode == RESULT_OK)
 			{
-				Intent i;
-				if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN_MR2)
-			    	i = new Intent(this, DNIeReaderActivity.class).putExtras(data.getExtras());
-			    else // Build.VERSION_CODES.KITKAT
-			    	i = new Intent(this, NFCOperationsEncKitKat.class).putExtras(data.getExtras());
-				
+				Intent i = new Intent(this, DNIeReaderActivity.class).putExtras(Objects.requireNonNull(data.getExtras()));
 				startActivityForResult(i, 1);
 			}
 			else if (resultCode == RESULT_CANCELED)
@@ -90,7 +90,7 @@ public class DNIeCANActivity extends Activity implements OnClickListener {
     public void onClick(View view) {
         if (view.getId() == R.id.btnStartRead)
         {
-            if (mEditTextCAN.getText().length() != 0x06) {
+            if (mEditTextCAN.getText().length() != 6) {
                 Toast.makeText(mContext, R.string.help_can_len, Toast.LENGTH_LONG).show();
                 return;
             }
@@ -105,21 +105,12 @@ public class DNIeCANActivity extends Activity implements OnClickListener {
 		cans.add(b);
 
 		((AppMain)getApplicationContext()).setCAN(b);
-			 
-		read(cans);
+
+		initReader();
 	}
 
-	private void read(ArrayList<CANSpecDO> bs) {
-		Intent i;
-
-		int currentapiVersion = Build.VERSION.SDK_INT;
-		if (currentapiVersion <= Build.VERSION_CODES.JELLY_BEAN_MR2)
-			i = new Intent( DNIeCANActivity.this, DNIeReaderActivity.class )
-			.putParcelableArrayListExtra(CANSpecDO.EXTRA_CAN_COL, bs )
-			.setAction( DNIeReaderActivity.ACTION_READ );
-		else // Build.VERSION_CODES.KITKAT
-	    	i = new Intent( this, NFCOperationsEncKitKat.class );
-		
+	private void initReader() {
+		Intent i = new Intent(DNIeCANActivity.this, DNIeReaderActivity.class);
 		startActivityForResult(i, 1);
 	}
 	

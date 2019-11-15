@@ -32,8 +32,8 @@ import javax.net.ssl.X509TrustManager;
  * Created by uchar on 10/09/16.
  */
 public class JSONRPCClient {
-    final static String USER_AGENT = "EIQUI JSON-RPC 0.1";
-    final static Integer MAX_CHUNK_LENGTH = 2048;
+    final private static String USER_AGENT = "EIQUI JSON-RPC 0.2";
+    final private static Integer MAX_CHUNK_LENGTH = 1024;
     final private static HostnameVerifier DO_NOT_VERIFY = new HostnameVerifier() {
         public boolean verify(String hostname, SSLSession session) {
             return true;
@@ -41,7 +41,7 @@ public class JSONRPCClient {
     };
     final static int NO_SSL_VERIFY = 2;
     final private URL mURL;
-    private int mFlags = 0;
+    private int mFlags;
 
     /**
      * Trust every server - dont check for any certificate
@@ -54,11 +54,11 @@ public class JSONRPCClient {
             }
 
             public void checkClientTrusted(X509Certificate[] chain,
-                                           String authType) throws CertificateException {
+                                           String authType) {
             }
 
             public void checkServerTrusted(X509Certificate[] chain,
-                                           String authType) throws CertificateException {
+                                           String authType) {
             }
         } };
 
@@ -80,7 +80,7 @@ public class JSONRPCClient {
     }
 
     private HttpURLConnection startConnection() throws IOException {
-        HttpURLConnection http = null;
+        HttpURLConnection http;
 
         if (mURL.getProtocol().toLowerCase().equals("https")) {
             if ((mFlags&NO_SSL_VERIFY) == NO_SSL_VERIFY)
@@ -124,8 +124,8 @@ public class JSONRPCClient {
 
             InputStream stream = new ByteArrayInputStream(jsonRPC.toString().getBytes(StandardCharsets.UTF_8));
             DataOutputStream wr = new DataOutputStream(http.getOutputStream());
-            byte buff[] = new byte[MAX_CHUNK_LENGTH];
-            int bytesRead = 0;
+            byte[] buff = new byte[MAX_CHUNK_LENGTH];
+            int bytesRead;
             while ((bytesRead = stream.read(buff)) != -1) {
                 wr.write(buff, 0, bytesRead);
             }
@@ -138,7 +138,7 @@ public class JSONRPCClient {
 
             BufferedReader in = new BufferedReader(new InputStreamReader(http.getInputStream()));
             String inputLine;
-            StringBuffer response = new StringBuffer();
+            StringBuilder response = new StringBuilder();
 
             while ((inputLine = in.readLine()) != null) {
                 response.append(inputLine);
@@ -148,9 +148,7 @@ public class JSONRPCClient {
             http.disconnect();
 
             return new JSONObject(response.toString());
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (JSONException | IOException e) {
             e.printStackTrace();
         }
 

@@ -14,6 +14,7 @@
         android:id="@+id/logoApp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:contentDescription="@string/alda_hotels"
         android:src="@drawable/alda" />
 
     <LinearLayout
@@ -78,7 +79,7 @@
             android:layout_height="wrap_content"
             android:text="@string/user_account"
             android:drawablePadding="5sp"
-            android:drawableStart="@drawable/ic_developer_board_black_24dp"
+            android:drawableStart="@drawable/ic_perm_identity_black_24dp"
             android:textColor="@color/colorPrimary"
             android:layout_marginTop="40dp"
             android:textSize="24sp"/>
@@ -133,6 +134,7 @@
 
     </LinearLayout>
 
+
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -140,8 +142,7 @@
         android:id="@+id/btnLogin"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="20dp"
-        android:padding="10dp"
-        android:background="@color/colorPrimary" />
+        android:padding="10dp" />
 
     <ProgressBar
         android:layout_width="match_parent"

@@ -7,7 +7,7 @@ package ocr.document.tardo.documentocr.activities;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.Html;
+import android.support.v4.text.HtmlCompat;
 import android.text.method.LinkMovementMethod;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -28,9 +28,9 @@ public class InfoActivity extends Activity implements OnClickListener {
         mBtnBack = findViewById(R.id.btnBack);
         mBtnBack.setOnClickListener(this);
 
-        TextView linkAldaUE = (TextView) findViewById(R.id.linkAldaUE);
+        TextView linkAldaUE = findViewById(R.id.linkAldaUE);
         String linkText = "Visit <a href='https://www.aldahotels.es/ue/'>Alda Hotels</a> web page for more information";
-        linkAldaUE.setText(Html.fromHtml(linkText));
+        linkAldaUE.setText(HtmlCompat.fromHtml(linkText, HtmlCompat.FROM_HTML_MODE_LEGACY));
         linkAldaUE.setMovementMethod(LinkMovementMethod.getInstance());
     }
 

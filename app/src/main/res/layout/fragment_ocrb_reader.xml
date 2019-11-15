@@ -30,7 +30,8 @@
             android:adjustViewBounds="false"
             android:cropToPadding="false"
             android:src="@drawable/rect_shadow"
-            android:layout_weight="1"/>
+            android:layout_weight="1"
+            android:contentDescription="@string/no_description" />
 
         <ImageView
             android:id="@+id/rect_visor"
@@ -40,7 +41,9 @@
             android:adjustViewBounds="false"
             android:cropToPadding="false"
             android:src="@drawable/rect_dni"
-            android:layout_weight="0" />
+            android:transitionName="ocr-img"
+            android:layout_weight="0"
+            android:contentDescription="@string/no_description" />
 
         <ImageView
             android:id="@+id/rect_shadowB"
@@ -50,7 +53,8 @@
             android:adjustViewBounds="false"
             android:cropToPadding="false"
             android:src="@drawable/rect_shadow"
-            android:layout_weight="0" />
+            android:layout_weight="0"
+            android:contentDescription="@string/no_description" />
 
     </LinearLayout>
 
