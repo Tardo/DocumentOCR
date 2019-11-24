@@ -20,36 +20,29 @@ import ocr.document.tardo.documentocr.R;
 
 public class ReadModeActivity extends Activity implements OnClickListener {
 
-    private final int REQUEST_PERMISSION_NFC = 1;
-
-    private Button mBtnOCR;
-    private Button mBtnNFC;
-    private Button mBtnLogout;
-    private ImageButton mBtnInfo;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_read_mode);
 
-        mBtnOCR = findViewById(R.id.btnOCR);
-        mBtnNFC = findViewById(R.id.btnNFC);
-        mBtnLogout = findViewById(R.id.btnCloseApp);
-        mBtnInfo = findViewById(R.id.btnInfo);
+        final Button ButtonOCR = findViewById(R.id.btnOCR);
+        final Button ButtonNFC = findViewById(R.id.btnNFC);
+        final Button ButtonLogout = findViewById(R.id.btnCloseApp);
+        final ImageButton ButtonInfo = findViewById(R.id.btnInfo);
 
-        mBtnOCR.setAlpha(0.0f);
-        mBtnOCR.setTranslationX(-100);
-        mBtnOCR.animate().alpha(1.0f).translationX(0).setStartDelay(250);
-        mBtnNFC.setAlpha(0.0f);
-        mBtnNFC.setTranslationX(100);
-        mBtnNFC.animate().alpha(1.0f).translationX(0).setStartDelay(250);
-        mBtnLogout.setTranslationY(100);
-        mBtnLogout.animate().alpha(1.0f).translationY(0).setStartDelay(250);
+        ButtonOCR.setAlpha(0.0f);
+        ButtonOCR.setTranslationX(-100);
+        ButtonOCR.animate().alpha(1.0f).translationX(0).setStartDelay(250);
+        ButtonNFC.setAlpha(0.0f);
+        ButtonNFC.setTranslationX(100);
+        ButtonNFC.animate().alpha(1.0f).translationX(0).setStartDelay(250);
+        ButtonLogout.setTranslationY(100);
+        ButtonLogout.animate().alpha(1.0f).translationY(0).setStartDelay(250);
 
-        mBtnOCR.setOnClickListener(this);
-        mBtnNFC.setOnClickListener(this);
-        mBtnLogout.setOnClickListener(this);
-        mBtnInfo.setOnClickListener(this);
+        ButtonOCR.setOnClickListener(this);
+        ButtonNFC.setOnClickListener(this);
+        ButtonLogout.setOnClickListener(this);
+        ButtonInfo.setOnClickListener(this);
     }
 
     @Override

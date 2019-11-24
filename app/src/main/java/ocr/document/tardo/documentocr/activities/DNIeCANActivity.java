@@ -8,7 +8,6 @@ package ocr.document.tardo.documentocr.activities;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.nfc.Tag;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -16,9 +15,6 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-
-import java.util.ArrayList;
-import java.util.Objects;
 
 import de.tsenger.androsmex.data.CANSpecDO;
 import ocr.document.tardo.documentocr.AppMain;
@@ -30,10 +26,8 @@ public class DNIeCANActivity extends Activity implements OnClickListener {
 	private static final int REQ_READ_PP 		= 3;
 
     private EditText mEditTextCAN;
-    private Button mButtonStartRead;
 
 	private Context mContext = null;
-	private Tag mFromTag = null;
 
 	
 	@Override
@@ -55,8 +49,8 @@ public class DNIeCANActivity extends Activity implements OnClickListener {
         });
 
         mEditTextCAN = findViewById(R.id.etCAN);
-        mButtonStartRead = findViewById(R.id.btnStartRead);
-        mButtonStartRead.setOnClickListener(this);
+        final Button ButtonStartRead = findViewById(R.id.btnStartRead);
+        ButtonStartRead.setOnClickListener(this);
     }
 
 		
@@ -64,24 +58,29 @@ public class DNIeCANActivity extends Activity implements OnClickListener {
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 		setIntent(data);
-		
+
+		final Bundle bundle = data.getExtras();
 		if (requestCode == REQ_EDIT_NEW_CAN) {
 			if (resultCode == RESULT_OK) {
 				try {
-					CANSpecDO can = Objects.requireNonNull(data.getExtras()).getParcelable(CANSpecDO.EXTRA_CAN);
-					read(can);
+					if (bundle != null) {
+						final CANSpecDO can = data.getExtras().getParcelable(CANSpecDO.EXTRA_CAN);
+						read(can);
+					} else {
+						toastIt("Error!");
+					}
 				} catch (NullPointerException e) {
 					e.printStackTrace(); // TODO: It's an error, don't hide & forget it ¬¬
 				}
 			}
 		}
 		else if (requestCode == REQ_READ_PP) {
-			if (resultCode == RESULT_OK)
+			if (resultCode == RESULT_OK && bundle != null)
 			{
-				Intent i = new Intent(this, DNIeReaderActivity.class).putExtras(Objects.requireNonNull(data.getExtras()));
+				Intent i = new Intent(this, DNIeReaderActivity.class).putExtras(bundle);
 				startActivityForResult(i, 1);
 			}
-			else if (resultCode == RESULT_CANCELED)
+			else if (resultCode == RESULT_CANCELED || bundle == null)
 				toastIt("Error!");
 		}
 	}
@@ -95,15 +94,12 @@ public class DNIeCANActivity extends Activity implements OnClickListener {
                 return;
             }
 
-            CANSpecDO can = new CANSpecDO(mEditTextCAN.getText().toString(), "", "");
+            final CANSpecDO can = new CANSpecDO(mEditTextCAN.getText().toString(), "", "");
             read(can);
         }
     }
 	
 	private void read(CANSpecDO b) {
-		ArrayList<CANSpecDO> cans = new ArrayList<>();
-		cans.add(b);
-
 		((AppMain)getApplicationContext()).setCAN(b);
 
 		initReader();

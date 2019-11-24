@@ -17,8 +17,6 @@ import ocr.document.tardo.documentocr.R;
 
 public class DNIeErrorActivity extends Activity {
 
-	private String mError;
-
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -28,9 +26,8 @@ public class DNIeErrorActivity extends Activity {
 
 		Bundle extras = getIntent().getExtras();
 		if(extras != null) {
-			mError = extras.getString("ERROR_MSG");
 			TextView tvloc = findViewById(R.id.infoResult);
-			tvloc.setText(mError);
+			tvloc.setText(extras.getString("ERROR_MSG"));
 		}
 
 		Button btnNFCBack = findViewById(R.id.btnBack);

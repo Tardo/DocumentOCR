@@ -61,7 +61,6 @@ public class DNIeResultActivity extends Activity implements View.OnClickListener
     public Bitmap mLoadedImage;
     private Bitmap mLoadedSignature;
 
-    private Button mButtonBack;
     private Button mButtonValidate;
 
     private HandlerThread mBackgroundThread;
@@ -191,10 +190,9 @@ public class DNIeResultActivity extends Activity implements View.OnClickListener
             }
         }
 
-        mButtonBack = findViewById(R.id.btnBack);
+        final Button btnBack = findViewById(R.id.btnBack);
+        btnBack.setOnClickListener(this);
         mButtonValidate = findViewById(R.id.btnValidate);
-
-        mButtonBack.setOnClickListener(this);
         mButtonValidate.setOnClickListener(this);
     }
 
@@ -284,7 +282,6 @@ public class DNIeResultActivity extends Activity implements View.OnClickListener
     private class RPCCreatePartner implements Runnable {
 
         final JSONRPCClientOdoo mClient;
-        private int mOperationResult;
 
 
         RPCCreatePartner(JSONRPCClientOdoo client) {
@@ -350,7 +347,7 @@ public class DNIeResultActivity extends Activity implements View.OnClickListener
                             encodedPhoto, name, docNumber, strBirthDate, gender, nation, strExpDate, docTypeOdoo);
                 }
 
-                mOperationResult = mClient.callCreate("res.partner", createValues);
+                final int mOperationResult = mClient.callCreate("res.partner", createValues);
 
                 if (mOperationResult != JSONRPCClientOdoo.ERROR) {
                     state = VALIDATION_OK;

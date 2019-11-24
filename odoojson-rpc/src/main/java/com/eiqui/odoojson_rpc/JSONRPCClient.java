@@ -1,93 +1,48 @@
 // Copyright 2018 - Alexandre Díaz - <dev@redneboa.es>
 package com.eiqui.odoojson_rpc;
 
-import android.util.Log;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
+import java.util.Arrays;
 
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
+import javax.net.ssl.SSLSocketFactory;
 
 /**
  * Created by uchar on 10/09/16.
  */
 public class JSONRPCClient {
-    final private static String USER_AGENT = "EIQUI JSON-RPC 0.2";
+    final private static String USER_AGENT = "EIQUI JSON-RPC 0.3";
     final private static Integer MAX_CHUNK_LENGTH = 1024;
-    final private static HostnameVerifier DO_NOT_VERIFY = new HostnameVerifier() {
-        public boolean verify(String hostname, SSLSession session) {
-            return true;
-        }
-    };
-    final static int NO_SSL_VERIFY = 2;
     final private URL mURL;
-    private int mFlags;
 
-    /**
-     * Trust every server - dont check for any certificate
-     */
-    private static void trustAllHosts() {
-        // Create a trust manager that does not validate certificate chains
-        TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
-            public X509Certificate[] getAcceptedIssuers() {
-                return new X509Certificate[] {};
-            }
 
-            public void checkClientTrusted(X509Certificate[] chain,
-                                           String authType) {
-            }
-
-            public void checkServerTrusted(X509Certificate[] chain,
-                                           String authType) {
-            }
-        } };
-
-        // Install the all-trusting trust manager
-        try {
-            SSLContext sc = SSLContext.getInstance("TLS");
-            sc.init(null, trustAllCerts, new java.security.SecureRandom());
-            HttpsURLConnection
-                    .setDefaultSSLSocketFactory(sc.getSocketFactory());
-        } catch (Exception e) {
-            e.printStackTrace();
+    public JSONRPCClient(String host) throws MalformedURLException {
+        String host_protocol = host.split(":")[0];
+        if (!Arrays.asList("http", "https").contains(host_protocol)) {
+            host = "https://" + host;
         }
-    }
-
-
-    public JSONRPCClient(String host, int flags) throws MalformedURLException {
         mURL = new URL(host);
-        mFlags = flags;
     }
 
     private HttpURLConnection startConnection() throws IOException {
         HttpURLConnection http;
 
         if (mURL.getProtocol().toLowerCase().equals("https")) {
-            if ((mFlags&NO_SSL_VERIFY) == NO_SSL_VERIFY)
-                trustAllHosts();
+            SSLSocketFactory sslsocketfactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
             HttpsURLConnection https = (HttpsURLConnection) mURL.openConnection();
-            if ((mFlags&NO_SSL_VERIFY) == NO_SSL_VERIFY)
-                https.setHostnameVerifier(DO_NOT_VERIFY);
+            https.setSSLSocketFactory(sslsocketfactory);
             http = https;
         } else {
             http = (HttpURLConnection) mURL.openConnection();
@@ -116,7 +71,7 @@ public class JSONRPCClient {
         try {
             JSONObject jsonRPC = new JSONObject();
             jsonRPC.put("jsonrpc", "2.0");
-            jsonRPC.put("id", (int)System.currentTimeMillis());
+            jsonRPC.put("id", String.valueOf(System.currentTimeMillis()));
             jsonRPC.put("method", method);
             jsonRPC.put("params", jsonObjParams);
 

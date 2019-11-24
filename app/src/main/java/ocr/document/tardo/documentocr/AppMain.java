@@ -8,7 +8,6 @@ import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
-import android.nfc.Tag;
 import android.os.Environment;
 import android.util.Base64;
 import android.util.Log;
@@ -23,19 +22,18 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.security.spec.InvalidKeySpecException;
-import java.util.Objects;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.DESKeySpec;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 
 import de.tsenger.androsmex.data.CANSpecDO;
 import ocr.document.tardo.documentocr.utils.Constants;
@@ -44,6 +42,7 @@ import ocr.document.tardo.documentocr.utils.Constants;
 public class AppMain extends Application {
 
     private static final String TAG = "AppMain";
+    private static final String CIPHER_METHOD = "AES/CBC/PKCS5Padding";
 
     public static final String DATA_PATH = Environment
             .getExternalStorageDirectory().toString() + "/DocumentOCR/";
@@ -80,6 +79,50 @@ public class AppMain extends Application {
 
     public TessBaseAPI getTessApi() { return mTessApi; }
 
+    public String getUserPassword() {
+        String passwd;
+        try {
+            final IvParameterSpec iv = new IvParameterSpec(Base64.decode(mSettings.getString("iv", ""), Base64.NO_WRAP));
+            final SecretKeySpec keySpec = new SecretKeySpec(Base64.decode(mSettings.getString("rn", ""), Base64.NO_WRAP), CIPHER_METHOD.split("/")[0]);
+            final Cipher cipher = Cipher.getInstance(CIPHER_METHOD);
+            cipher.init(Cipher.DECRYPT_MODE, keySpec, iv);
+            final byte[] encryptedPwdBytes = Base64.decode(mSettings.getString("Pass", ""), Base64.NO_WRAP);
+            final byte[] plainTextPwdBytes = cipher.doFinal(encryptedPwdBytes);
+            passwd = new String(plainTextPwdBytes, StandardCharsets.UTF_8);
+        } catch (NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | BadPaddingException | IllegalBlockSizeException | IllegalArgumentException | InvalidAlgorithmParameterException e) {
+            e.printStackTrace(); // TODO: It's an error, don't hide & forget it ¬¬
+            passwd = new String();
+        }
+
+        return passwd;
+    }
+
+    public void saveOdooClientParameters(String host, String dbname, int uid, String passwd) {
+        SharedPreferences.Editor editor = mSettings.edit();
+        editor.putInt("UserID", uid);
+        editor.putString("Host", host);
+        editor.putString("DBName", dbname);
+
+        try {
+            final byte[] cleartext = passwd.getBytes(StandardCharsets.UTF_8);
+
+            KeyGenerator keyGenerator = KeyGenerator.getInstance(CIPHER_METHOD.split("/")[0]);
+            keyGenerator.init(128);
+            SecretKey secretKey = keyGenerator.generateKey();
+            editor.putString("rn", Base64.encodeToString(secretKey.getEncoded(), Base64.NO_WRAP));
+
+            final Cipher cipher = Cipher.getInstance(CIPHER_METHOD);
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+            editor.putString("iv", Base64.encodeToString(cipher.getIV(), Base64.NO_WRAP));
+            final String encPasswdBase64 = Base64.encodeToString(cipher.doFinal(cleartext), Base64.NO_WRAP);
+            editor.putString("Pass", encPasswdBase64);
+        } catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e) {
+            e.printStackTrace(); // TODO: It's an error, don't hide & forget it ¬¬
+        }
+
+        editor.apply();
+    }
+
     @Override
     public void onCreate() {
         // PreferenceManager.setDefaultValues(this, R.xml.prefs, false);
@@ -115,19 +158,7 @@ public class AppMain extends Application {
         boolean autoInit = false;
         int uid = getUID();
         if (uid != -1) {
-            String passwd = "";
-            try {
-                byte[] encrypedPwdBytes = Base64.decode(mSettings.getString("Pass", ""), Base64.NO_WRAP);
-                DESKeySpec keySpec = new DESKeySpec(Objects.requireNonNull(mSettings.getString("rn", "")).getBytes());
-                SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("DES");
-                SecretKey key = keyFactory.generateSecret(keySpec);
-                Cipher cipher = Cipher.getInstance("DES/OFB32/PKCS5Padding");
-                cipher.init(Cipher.DECRYPT_MODE, key);
-                byte[] plainTextPwdBytes = (cipher.doFinal(encrypedPwdBytes));
-                passwd = new String(plainTextPwdBytes, StandardCharsets.UTF_8);
-            } catch (NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | BadPaddingException | InvalidKeySpecException | IllegalBlockSizeException | IllegalArgumentException e) {
-                e.printStackTrace(); // TODO: It's an error, don't hide & forget it ¬¬
-            }
+            String passwd = getUserPassword();
 
             if (!passwd.isEmpty()) {
                 try {
@@ -138,15 +169,6 @@ public class AppMain extends Application {
                     e.printStackTrace(); // TODO: It's an error, don't hide & forget it ¬¬
                 }
             }
-        }
-
-        if (!autoInit) {
-            SecureRandom sr = new SecureRandom();
-            byte[] output = new byte[16];
-            sr.nextBytes(output);
-            SharedPreferences.Editor editor = mSettings.edit();
-            editor.putString("rn", Base64.encodeToString(output, Base64.NO_WRAP));
-            editor.apply();
         }
 
         super.onCreate();

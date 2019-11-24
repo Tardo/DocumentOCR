@@ -16,7 +16,6 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.util.Base64;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ArrayAdapter;
@@ -36,20 +35,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 import java.net.MalformedURLException;
-import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
-import java.util.Objects;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.DESKeySpec;
 
 import ocr.document.tardo.documentocr.AppMain;
 import ocr.document.tardo.documentocr.R;
@@ -70,7 +56,6 @@ public class LoginActivity extends AccountAuthenticatorActivity implements OnCli
     private TextView mTextError;
     private Button mBtnLoginIn;
     private ProgressBar mProgressBar;
-    private ImageView mLogo;
     public SharedPreferences mSettings;
 
     @Override
@@ -86,12 +71,12 @@ public class LoginActivity extends AccountAuthenticatorActivity implements OnCli
         mEditPass = findViewById(R.id.editPassword);
         mBtnLoginIn = findViewById(R.id.btnLogin);
         mProgressBar = findViewById(R.id.progressBar);
-        mLogo = findViewById(R.id.logoApp);
         mTextError = findViewById(R.id.txtError);
 
-        mLogo.setAlpha(0.0f);
-        mLogo.setTranslationY(-100);
-        mLogo.animate().alpha(1.0f).translationY(0).setStartDelay(250);
+        final ImageView Logo = findViewById(R.id.logoApp);
+        Logo.setAlpha(0.0f);
+        Logo.setTranslationY(-100);
+        Logo.animate().alpha(1.0f).translationY(0).setStartDelay(250);
 
         mBtnLoginIn.setAlpha(0.0f);
         mBtnLoginIn.setTranslationY(100);
@@ -107,7 +92,9 @@ public class LoginActivity extends AccountAuthenticatorActivity implements OnCli
         mBtnLoginIn.setOnClickListener(this);
         mEditDBName.setOnClickListener(this);
 
-        new GetDBTask().execute(Objects.requireNonNull(mEditHost.getText()).toString());
+        if (mEditHost.getText() != null) {
+            new GetDBTask().execute(mEditHost.getText().toString());
+        }
 
         // Comprobar que la app tiene permisos suficientes para funcionar correctamente
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
@@ -142,13 +129,13 @@ public class LoginActivity extends AccountAuthenticatorActivity implements OnCli
 
     @Override
     public void onClick(View v) {
-        if (v.getId() == R.id.btnLogin)
+        if (v.getId() == R.id.btnLogin && mEditHost.getText() != null && mEditLogin.getText() != null && mEditPass.getText() != null)
         {
             new LoginTask().execute(
-                    Objects.requireNonNull(mEditHost.getText()).toString(),
+                    mEditHost.getText().toString(),
                     mEditDBName.getText().toString(),
-                    Objects.requireNonNull(mEditLogin.getText()).toString(),
-                    Objects.requireNonNull(mEditPass.getText()).toString());
+                    mEditLogin.getText().toString(),
+                    mEditPass.getText().toString());
             mTextError.setVisibility(View.INVISIBLE);
             hideControls(Boolean.TRUE);
         } else if (v.getId() == R.id.editDBName)
@@ -159,8 +146,8 @@ public class LoginActivity extends AccountAuthenticatorActivity implements OnCli
 
     @Override
     public void onFocusChange(View v, boolean b) {
-        if (!b) {
-            new GetDBTask().execute(Objects.requireNonNull(mEditHost.getText()).toString());
+        if (!b && mEditHost.getText() != null) {
+            new GetDBTask().execute(mEditHost.getText().toString());
         }
     }
 
@@ -189,33 +176,24 @@ public class LoginActivity extends AccountAuthenticatorActivity implements OnCli
 
     private void initApp() {
         hideControls(Boolean.TRUE);
-        String passwd = "";
-        try {
-            byte[] encrypedPwdBytes = Base64.decode(mSettings.getString("Pass", ""), Base64.NO_WRAP);
-            DESKeySpec keySpec = new DESKeySpec(Objects.requireNonNull(mSettings.getString("rn", "")).getBytes());
-            SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("DES");
-            SecretKey key = keyFactory.generateSecret(keySpec);
-            Cipher cipher = Cipher.getInstance("DES/OFB32/PKCS5Padding");
-            cipher.init(Cipher.DECRYPT_MODE, key);
-            byte[] plainTextPwdBytes = (cipher.doFinal(encrypedPwdBytes));
-            passwd = new String(plainTextPwdBytes, StandardCharsets.UTF_8);
-        } catch (NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | BadPaddingException | InvalidKeySpecException | IllegalBlockSizeException | IllegalArgumentException e) {
-            e.printStackTrace(); // TODO: It's an error, don't hide & forget it ¬¬
-        }
-
-        try {
-            ((AppMain)getApplication()).startOdooClient(mSettings.getString("Host",""),
-                    mSettings.getString("DBName",""),
-                    mSettings.getInt("UserID",-1), passwd);
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-            showErrorMessage(getResources().getString(R.string.init_app_error));
-            return;
+        String passwd = ((AppMain)getApplication()).getUserPassword();
+        if (!passwd.isEmpty()) {
+            try {
+                ((AppMain) getApplication()).startOdooClient(mSettings.getString("Host", ""),
+                        mSettings.getString("DBName", ""),
+                        mSettings.getInt("UserID", -1), passwd);
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+                showErrorMessage(getResources().getString(R.string.init_app_error));
+                return;
+            }
         }
 
         // Init
         SharedPreferences.Editor editor = mSettings.edit();
-        editor.putBoolean("HasHotelL10N", Boolean.TRUE); // FIXME: Hardcoded value
+        // FIXME: Hardcoded value to enable support with hootel l10n modules.
+        // This will break the usage with vanilla Odoo
+        editor.putBoolean("HasHotelL10N", Boolean.TRUE);
         editor.apply();
         startActivity(new Intent(this, ReadModeActivity.class));
         finish();
@@ -259,27 +237,12 @@ public class LoginActivity extends AccountAuthenticatorActivity implements OnCli
         }
 
         protected void onPostExecute(Boolean res) {
-            if (res) {
-                SharedPreferences.Editor editor = mSettings.edit();
-                editor.putInt("UserID", mUID);
-                editor.putString("Host", Objects.requireNonNull(mEditHost.getText()).toString());
-                editor.putString("DBName", mEditDBName.getText().toString());
-
-                try {
-                    byte[] cleartext = Objects.requireNonNull(mEditPass.getText()).toString().getBytes(StandardCharsets.UTF_8);
-                    DESKeySpec keySpec = new DESKeySpec(Objects.requireNonNull(mSettings.getString("rn", "")).getBytes());
-                    SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("DES");
-                    SecretKey key = keyFactory.generateSecret(keySpec);
-                    Cipher cipher = Cipher.getInstance("DES/OFB32/PKCS5Padding");
-                    cipher.init(Cipher.ENCRYPT_MODE, key);
-                    final String encPasswdBase64 = Base64.encodeToString(cipher.doFinal(cleartext), Base64.NO_WRAP);
-                    editor.putString("Pass", encPasswdBase64);
-                } catch (InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e) {
-                    e.printStackTrace(); // TODO: It's an error, don't hide & forget it ¬¬
-                }
-
-                editor.apply();
-
+            if (res && mEditHost.getText() != null && mEditPass.getText() != null) {
+                ((AppMain)getApplication()).saveOdooClientParameters(
+                        mEditHost.getText().toString(),
+                        mEditDBName.getText().toString(),
+                        mUID,
+                        mEditPass.getText().toString());
                 initApp();
             }
             else {

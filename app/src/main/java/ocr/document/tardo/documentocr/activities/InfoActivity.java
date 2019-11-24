@@ -18,15 +18,13 @@ import ocr.document.tardo.documentocr.R;
 
 public class InfoActivity extends Activity implements OnClickListener {
 
-    private Button mBtnBack;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_info);
 
-        mBtnBack = findViewById(R.id.btnBack);
-        mBtnBack.setOnClickListener(this);
+        final Button ButtonBack = findViewById(R.id.btnBack);
+        ButtonBack.setOnClickListener(this);
 
         TextView linkAldaUE = findViewById(R.id.linkAldaUE);
         String linkText = "Visit <a href='https://www.aldahotels.es/ue/'>Alda Hotels</a> web page for more information";

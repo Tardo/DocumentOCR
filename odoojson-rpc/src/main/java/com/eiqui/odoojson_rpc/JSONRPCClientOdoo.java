@@ -42,7 +42,7 @@ public class JSONRPCClientOdoo {
     }
 
     public JSONRPCClientOdoo(String url) throws MalformedURLException {
-        mRPCClient = new JSONRPCClient(url + RPC_URI, 0);
+        mRPCClient = new JSONRPCClient(url + RPC_URI);
     }
 
     public String getLastError() { return mLastError; }
@@ -110,10 +110,7 @@ public class JSONRPCClientOdoo {
             Object obj = callObject("common", "login", jsonArgs);
             if (obj instanceof Integer)
                 res = (Integer)obj;
-        } catch (JSONException e) {
-            e.printStackTrace();
-            throw new OdooLoginException(e.getMessage());
-        } catch (NumberFormatException e) {
+        } catch (JSONException | NumberFormatException e) {
             e.printStackTrace();
             throw new OdooLoginException(e.getMessage());
         }

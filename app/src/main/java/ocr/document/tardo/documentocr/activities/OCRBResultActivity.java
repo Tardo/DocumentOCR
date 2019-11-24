@@ -14,7 +14,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
-import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -26,8 +25,6 @@ import android.widget.Toast;
 import com.eiqui.odoojson_rpc.JSONRPCClientOdoo;
 import com.eiqui.odoojson_rpc.exceptions.OdooSearchException;
 
-import java.util.Objects;
-
 import ocr.document.tardo.documentocr.AppMain;
 import ocr.document.tardo.documentocr.R;
 import ocr.document.tardo.documentocr.utils.Constants;
@@ -38,7 +35,6 @@ public class OCRBResultActivity extends Activity implements View.OnClickListener
     final private int VALIDATION_FAIL = -1;
     final private int VALIDATION_OK = 1;
 
-    private Button mButtonOCRBBack;
     private Button mButtonValidate;
 
     private HandlerThread mBackgroundThread;
@@ -56,7 +52,7 @@ public class OCRBResultActivity extends Activity implements View.OnClickListener
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
-            String[] name = Objects.requireNonNull(extras.getString("NAME")).split("\\s\\s");
+            String[] name = extras.getString("NAME", "").split("\\s\\s");
             String docNumber = extras.getString("DOC_NUMBER");
             String caducity = extras.getString("CADUCITY");
             String birthday = extras.getString("BIRTHDAY");
@@ -94,10 +90,9 @@ public class OCRBResultActivity extends Activity implements View.OnClickListener
             image.setImageBitmap(imgOCR);
         }
 
-        mButtonOCRBBack = findViewById(R.id.btnBack);
+        final Button ButtonOCRBBack = findViewById(R.id.btnBack);
+        ButtonOCRBBack.setOnClickListener(this);
         mButtonValidate = findViewById(R.id.btnValidate);
-
-        mButtonOCRBBack.setOnClickListener(this);
         mButtonValidate.setOnClickListener(this);
     }
 
@@ -192,26 +187,31 @@ public class OCRBResultActivity extends Activity implements View.OnClickListener
 
         @Override
         public void run() {
+            int state = VALIDATION_FAIL;
             final SharedPreferences Settings = ocrbResultActivity.getSharedPreferences(Constants.SHARED_PREFS_USER_INFO, Context.MODE_PRIVATE);
             final boolean hasHotelL10N = Settings.getBoolean("HasHotelL10N", false);
             final Bundle extras = ocrbResultActivity.getIntent().getExtras();
-            String name = Objects.requireNonNull(extras).getString("NAME");
-            String docNumber = extras.getString("DOC_NUMBER");
-            String oexpedition = extras.getString("OEXPEDITION");
-            String obirthday = extras.getString("OBIRTHDAY");
-            String gender = extras.getString("GENDER");
-            String nation = extras.getString("NATION");
+            if (extras == null) {
+                Message completeMessage = mBackgroundHandler.obtainMessage(state, "");
+                completeMessage.sendToTarget();
+                return;
+            }
+            String name = extras.getString("NAME", "");
+            String docNumber = extras.getString("DOC_NUMBER", "");
+            String oexpedition = extras.getString("OEXPEDITION", "");
+            String obirthday = extras.getString("OBIRTHDAY", "");
+            String gender = extras.getString("GENDER", "");
+            String nation = extras.getString("NATION", "");
             int docType = extras.getInt("DOC_TYPE");
             String docTypeOdoo = docType==OCRInfo.ID_TYPE_DNI?"DNI":"Passport";
 
             String ogender = "other";
-            if ('M' == Objects.requireNonNull(gender).charAt(0)) {
+            if ('M' == gender.charAt(0)) {
                 ogender = "male";
             } else if ('F' == gender.charAt(0)) {
                 ogender = "female";
             }
 
-            int state = VALIDATION_FAIL;
             try {
                 String createValues;
                 // Hotel L10N Support
@@ -225,11 +225,9 @@ public class OCRBResultActivity extends Activity implements View.OnClickListener
                             name, docNumber, obirthday, ogender, nation, oexpedition, docTypeOdoo);
                 }
 
-                Log.v("MMM", "PArams: " + createValues);
                 final int mOperationResult = mClient.callCreate("res.partner", createValues);
 
                 if (mOperationResult != JSONRPCClientOdoo.ERROR) {
-                    //mBackgroundHandler.
                     state = VALIDATION_OK;
                 }
             } catch (OdooSearchException e) {

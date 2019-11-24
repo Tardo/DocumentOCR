@@ -35,6 +35,7 @@ import java.io.ByteArrayInputStream;
 import java.security.KeyStoreSpi;
 import java.security.Security;
 
+import de.hdodenhof.circleimageview.CircleImageView;
 import de.tsenger.androsmex.data.CANSpecDO;
 import de.tsenger.androsmex.data.CANSpecDOStore;
 import de.tsenger.androsmex.mrtd.DG11;
@@ -87,14 +88,18 @@ public class DNIeReaderActivity extends Activity implements ReaderCallback {
 
 	private Tag mTagFromIntent = null;
 
-	private ImageView mAnimInfo;
-	private TextView mAnimInfoText;
-
 	Typeface mFontType;
 	private String mTextProcess;
 	private String mTextResultPage;
 
 	private boolean mForceReset = true;
+
+	private TextView mTextResult;
+	private TextView mTextResultExtra;
+	private Button mButtonNext;
+	private Button mButtonBack;
+	private CircleImageView mImagePhoto;
+	private ImageView mImageDNIe;
 
 	private ValueAnimator mValueAnimatorBall1;
 	private ValueAnimator mValueAnimatorBall2;
@@ -102,6 +107,8 @@ public class DNIeReaderActivity extends Activity implements ReaderCallback {
 	private ImageView mAnimDNIeBall1;
 	private ImageView mAnimDNIeBall2;
 	private ImageView mAnimDNIeBall3;
+	private ImageView mAnimInfo;
+	private TextView mAnimInfoText;
 
 	private MediaPlayer mSoundError;
 	private MediaPlayer mSoundSuccess;
@@ -218,33 +225,31 @@ public class DNIeReaderActivity extends Activity implements ReaderCallback {
 	private void setMode(int mode) {
 		boolean isSimpleMode = (mode == MODE_COMPLETE);
 
-		findViewById(R.id.textInfo).setVisibility(isSimpleMode || mode == MODE_ERROR ? View.INVISIBLE : View.VISIBLE);
-		findViewById(R.id.textResultExtra).setVisibility(isSimpleMode ? View.VISIBLE : View.INVISIBLE);
-		findViewById(R.id.btnNext).setVisibility(isSimpleMode ? View.VISIBLE : View.INVISIBLE);
-		findViewById(R.id.btnBack).setVisibility(isSimpleMode ? View.INVISIBLE : View.VISIBLE);
-		findViewById(R.id.textResult).setVisibility(mode == MODE_READING ? View.INVISIBLE : View.VISIBLE);
+		mAnimInfoText.setVisibility(isSimpleMode || mode == MODE_ERROR ? View.INVISIBLE : View.VISIBLE);
+		mTextResultExtra.setVisibility(isSimpleMode ? View.VISIBLE : View.INVISIBLE);
+		mButtonNext.setVisibility(isSimpleMode ? View.VISIBLE : View.INVISIBLE);
+		mButtonBack.setVisibility(isSimpleMode ? View.INVISIBLE : View.VISIBLE);
+		mTextResult.setVisibility(mode == MODE_READING ? View.INVISIBLE : View.VISIBLE);
 
 		//Control DNIe Read Anim Visbility
 		if (mode != MODE_READING) {
 			mValueAnimatorBall1.cancel();
 			mValueAnimatorBall2.cancel();
 			mValueAnimatorBall3.cancel();
-			findViewById(R.id.animDNIe_ball_1).setVisibility(View.INVISIBLE);
-			findViewById(R.id.animDNIe_ball_2).setVisibility(View.INVISIBLE);
-			findViewById(R.id.animDNIe_ball_3).setVisibility(View.INVISIBLE);
+			mAnimDNIeBall1.setVisibility(View.INVISIBLE);
+			mAnimDNIeBall2.setVisibility(View.INVISIBLE);
+			mAnimDNIeBall3.setVisibility(View.INVISIBLE);
 		}
-		findViewById(R.id.imgDNIe).setVisibility(mode == MODE_READING ? View.VISIBLE : View.INVISIBLE);
+		mImageDNIe.setVisibility(mode == MODE_READING ? View.VISIBLE : View.INVISIBLE);
 
 		if (mode == MODE_WAITING) {
 			changeAnimation(R.drawable.animated_start_read_dnie);
 		} else if (mode == MODE_COMPLETE) {
 			changeAnimation(R.drawable.animated_completed_dnie);
-			TextView textResultExtra = findViewById(R.id.textResultExtra);
-			((TextView) findViewById(R.id.textResult)).setText(R.string.op_finished);
-			textResultExtra.setText(R.string.op_finished_info);
+			mTextResult.setText(R.string.op_finished);
+			mTextResultExtra.setText(R.string.op_finished_info);
 			Bitmap mLoadedImage = null;
-			ImageView imgPhoto = findViewById(R.id.photo);
-			imgPhoto.setVisibility(View.VISIBLE);
+			mImagePhoto.setVisibility(View.VISIBLE);
 			if (mDG2 != null) {
 				try {
 					// JPEG-2000 Parse
@@ -259,16 +264,14 @@ public class DNIeReaderActivity extends Activity implements ReaderCallback {
 			if (mLoadedImage != null)
 				setPhoto(new BitmapDrawable(getResources(), mLoadedImage));
 			else
-				imgPhoto.setImageResource(R.drawable.noface);
+				mImagePhoto.setImageResource(R.drawable.noface);
 			vibrate(VIBRATE_TIME_MS);
 			mSoundSuccess.start();
 		} else if (mode == MODE_READING) {
 			changeAnimation(R.drawable.animated_reading_dnie);
-			final ImageView imgDNIe = findViewById(R.id.imgDNIe);
-			imgDNIe.setAlpha(0.0f);
-			imgDNIe.setTranslationY(200.0f);
-			imgDNIe.animate().setDuration(800).translationY(-200.0f).alpha(1.0f).start();
-
+			mImageDNIe.setAlpha(0.0f);
+			mImageDNIe.setTranslationY(200.0f);
+			mImageDNIe.animate().setDuration(800).translationY(-200.0f).alpha(1.0f).start();
 
 			mValueAnimatorBall1.setStartDelay(800);
 			mValueAnimatorBall1.start();
@@ -277,10 +280,10 @@ public class DNIeReaderActivity extends Activity implements ReaderCallback {
 			mValueAnimatorBall3.setStartDelay(1300);
 			mValueAnimatorBall3.start();
 
-			((TextView)findViewById(R.id.textResult)).setText(R.string.process_msg_lectura);
+			mTextResult.setText(R.string.process_msg_lectura);
 		} else if (mode == MODE_ERROR) {
 			mSoundError.start();
-			((TextView)findViewById(R.id.textResult)).setText(R.string.op_reinit);
+			mTextResult.setText(R.string.op_reinit);
 			changeAnimation(R.drawable.animated_error_dnie);
 		}
 	}
@@ -296,18 +299,16 @@ public class DNIeReaderActivity extends Activity implements ReaderCallback {
 	}
 
 	private void setPhoto(Drawable replace) {
-		ImageView photo = findViewById(R.id.photo);
-		photo.setImageDrawable(replace);
-		photo.setScaleX(0.3f);
-		photo.setScaleY(0.3f);
-		photo.animate().alpha(1.0f).scaleX(1.0f).scaleY(1.0f).setStartDelay(250);
+		mImagePhoto.setImageDrawable(replace);
+		mImagePhoto.setScaleX(0.3f);
+		mImagePhoto.setScaleY(0.3f);
+		mImagePhoto.animate().alpha(1.0f).scaleX(1.0f).scaleY(1.0f).setStartDelay(250);
 	}
 
 	private void changeAnimation(int animIndex) {
 		Drawable anim = ContextCompat.getDrawable(DNIeReaderActivity.this, animIndex);
-		ImageView animInfo = findViewById(R.id.animInfo);
-		animInfo.setImageDrawable(anim);
-		((Animatable)animInfo.getDrawable()).start();
+		mAnimInfo.setImageDrawable(anim);
+		((Animatable)mAnimInfo.getDrawable()).start();
 	}
 
 	@Override
@@ -329,14 +330,20 @@ public class DNIeReaderActivity extends Activity implements ReaderCallback {
 		mDG7 = null;
 		mDG11 = null;
 
-		findViewById(R.id.textResultExtra).setVisibility(TextView.INVISIBLE);
-
 		mCANDOS = new CANSpecDOStore(this);
 		mCANDnie = ((AppMain)getApplicationContext()).getCAN();
 
+		mTextResult = findViewById(R.id.textResult);
+		mTextResultExtra = findViewById(R.id.textResultExtra);
+		mButtonNext = findViewById(R.id.btnNext);
+		mButtonBack = findViewById(R.id.btnBack);
+		mImagePhoto = findViewById(R.id.photo);
+		mImageDNIe = findViewById(R.id.imgDNIe);
 		mAnimDNIeBall1 = findViewById(R.id.animDNIe_ball_1);
 		mAnimDNIeBall2 = findViewById(R.id.animDNIe_ball_2);
 		mAnimDNIeBall3 = findViewById(R.id.animDNIe_ball_3);
+		mAnimInfo = findViewById(R.id.animInfo);
+		mAnimInfoText = findViewById(R.id.textInfo);
 
 		final PropertyValuesHolder valTranslateY = PropertyValuesHolder.ofFloat("translateY", 0f, -300f);
 		final PropertyValuesHolder valAlpha = PropertyValuesHolder.ofFloat("alpha", 1f, 0f);
@@ -388,19 +395,15 @@ public class DNIeReaderActivity extends Activity implements ReaderCallback {
 			}
 		});
 
-		TextView myText = findViewById(R.id.textResultExtra);
-		myText.setVisibility(TextView.INVISIBLE);
-		myText.setTypeface(mFontType);
+		mTextResultExtra.setVisibility(TextView.INVISIBLE);
+		mTextResultExtra.setTypeface(mFontType);
 
-		Button btnNFCBack = findViewById(R.id.btnBack);
-		btnNFCBack.setOnClickListener(new OnClickListener() {
+		mButtonBack.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				onBackPressed();
 			}
 		});
-
-		Button btnNFCNext = findViewById(R.id.btnNext);
-		btnNFCNext.setOnClickListener(new OnClickListener() {
+		mButtonNext.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				if (!mDocumentReaded)
 					return;
@@ -416,14 +419,12 @@ public class DNIeReaderActivity extends Activity implements ReaderCallback {
 				Intent myResultIntent = new Intent(DNIeReaderActivity.this, DNIeResultActivity.class);
 				myResultIntent.putExtras(b);
 				ActivityOptionsCompat options = ActivityOptionsCompat.
-						makeSceneTransitionAnimation(DNIeReaderActivity.this, findViewById(R.id.photo), "photo-img");
+						makeSceneTransitionAnimation(DNIeReaderActivity.this, mImagePhoto, "photo-img");
 				startActivityForResult(myResultIntent, 1, options.toBundle());
 				finish();
 			}
 		});
 
-		mAnimInfoText = findViewById(R.id.textInfo);
-		mAnimInfo = findViewById(R.id.animInfo);
 		setMode(MODE_WAITING);
 
 		// Sounds

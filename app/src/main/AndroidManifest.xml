@@ -23,6 +23,7 @@
         android:theme="@style/AppTheme"
         android:allowBackup="false"
         android:fullBackupContent="false"
+        android:usesCleartextTraffic="false"
         tools:replace="android:allowBackup">
         <activity
             android:name=".activities.LoginActivity"

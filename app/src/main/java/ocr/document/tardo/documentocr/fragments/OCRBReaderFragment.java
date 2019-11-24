@@ -124,7 +124,6 @@ public class OCRBReaderFragment extends Fragment
     private CameraDevice mCameraDevice;
     private Size mPreviewSize;
     private ImageView mVisor;
-    private SurfaceView mSurfaceView;
     private SurfaceHolder mSurfaceHolder;
     private Paint mPaintOCRRect;
     private Rect mCropArea;
@@ -167,12 +166,10 @@ public class OCRBReaderFragment extends Fragment
 
     private CaptureRequest.Builder mPreviewRequestBuilder;
     private CaptureRequest mPreviewRequest;
-    private int mState = STATE_PREVIEW;
     private Semaphore mCameraOpenCloseLock = new Semaphore(1);
     private boolean mFlashSupported;
-    private int mSensorOrientation;
     private OCRTaskInfo mOCRTaskInfo = new OCRTaskInfo();
-    private Boolean mOCRReaded;
+    private Boolean mOCRRead;
 
     private MediaPlayer mSoundCamera;
 
@@ -180,44 +177,42 @@ public class OCRBReaderFragment extends Fragment
             = new CameraCaptureSession.CaptureCallback() {
 
         private void process(CaptureResult result) {
-            if (mState == STATE_PREVIEW) {
-                if (null == mOCRTaskInfo.mOCRInfo && !mOCRTaskInfo.mRunning) {
-                    mOCRReaded = false;
-                    final TessBaseAPI tessApi = ((AppMain) Objects.requireNonNull(getActivity()).getApplication()).getTessApi();
-                    mBackgroundHandler.postAtFrontOfQueue(new OCRTask(mTextureView.getBitmap(), mCropArea, tessApi, mOCRTaskInfo));
-                    mOCRTaskInfo.mRunning = true;
-                } else if (null != mOCRTaskInfo.mOCRInfo && !mOCRReaded) {
-                    vibrate(VIBRATE_TIME_MS);
-                    mBackgroundHandler.removeCallbacksAndMessages(null);
-                    mOCRReaded = true;
+            if (null == mOCRTaskInfo.mOCRInfo && !mOCRTaskInfo.mRunning) {
+                mOCRRead = false;
+                final TessBaseAPI tessApi = ((AppMain) Objects.requireNonNull(getActivity()).getApplication()).getTessApi();
+                mBackgroundHandler.postAtFrontOfQueue(new OCRTask(mTextureView.getBitmap(), mCropArea, tessApi, mOCRTaskInfo));
+                mOCRTaskInfo.mRunning = true;
+            } else if (null != mOCRTaskInfo.mOCRInfo && !mOCRRead) {
+                vibrate(VIBRATE_TIME_MS);
+                mBackgroundHandler.removeCallbacksAndMessages(null);
+                mOCRRead = true;
 
-                    Objects.requireNonNull(getActivity()).runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            OCRBReaderActivity activity = (OCRBReaderActivity)getActivity();
-                            mSoundCamera.start();
-                            mVisor.setImageBitmap(mOCRTaskInfo.mOCRImage);
-                            activity.printOCRResults(mOCRTaskInfo.mOCRInfo, mOCRTaskInfo.mOCRImage, mOCRTaskInfo.mOCRBoxes, mVisor);
-                        }
-                    });
-                }
-
-                // Draw recognized character boxes
-                if (null != mOCRTaskInfo.mOCRBoxes && !mOCRTaskInfo.mOCRBoxes.isEmpty()) {
-                    Canvas surfaceCanvas = mSurfaceHolder.lockCanvas();
-                    surfaceCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-                    Scanner scanner = new Scanner(mOCRTaskInfo.mOCRBoxes);
-                    while (scanner.hasNext()) {
-                        scanner.next(); // Letter
-                        final int x = mCropArea.left + scanner.nextBigInteger().intValue();
-                        final int y = mCropArea.top + (mCropArea.height()-scanner.nextBigInteger().intValue());
-                        final int w = mCropArea.left + scanner.nextBigInteger().intValue();
-                        final int h = mCropArea.top + (mCropArea.height()-scanner.nextBigInteger().intValue());
-                        surfaceCanvas.drawRect(new Rect(x, y, w, h), mPaintOCRRect);
-                        scanner.next(); // Unknown
+                Objects.requireNonNull(getActivity()).runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        OCRBReaderActivity activity = (OCRBReaderActivity)getActivity();
+                        mSoundCamera.start();
+                        mVisor.setImageBitmap(mOCRTaskInfo.mOCRImage);
+                        activity.printOCRResults(mOCRTaskInfo.mOCRInfo, mOCRTaskInfo.mOCRImage, mOCRTaskInfo.mOCRBoxes, mVisor);
                     }
-                    mSurfaceHolder.unlockCanvasAndPost(surfaceCanvas);
+                });
+            }
+
+            // Draw recognized character boxes
+            if (null != mOCRTaskInfo.mOCRBoxes && !mOCRTaskInfo.mOCRBoxes.isEmpty()) {
+                Canvas surfaceCanvas = mSurfaceHolder.lockCanvas();
+                surfaceCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+                Scanner scanner = new Scanner(mOCRTaskInfo.mOCRBoxes);
+                while (scanner.hasNext()) {
+                    scanner.next(); // Letter
+                    final int x = mCropArea.left + scanner.nextBigInteger().intValue();
+                    final int y = mCropArea.top + (mCropArea.height()-scanner.nextBigInteger().intValue());
+                    final int w = mCropArea.left + scanner.nextBigInteger().intValue();
+                    final int h = mCropArea.top + (mCropArea.height()-scanner.nextBigInteger().intValue());
+                    surfaceCanvas.drawRect(new Rect(x, y, w, h), mPaintOCRRect);
+                    scanner.next(); // Unknown
                 }
+                mSurfaceHolder.unlockCanvasAndPost(surfaceCanvas);
             }
         }
 
@@ -308,10 +303,10 @@ public class OCRBReaderFragment extends Fragment
         mTextureView = view.findViewById(R.id.texture);
         mVisor = view.findViewById(R.id.rect_visor);
 
-        mSurfaceView = view.findViewById(R.id.surfaceView);
-        mSurfaceView.setZOrderOnTop(true);
+        final SurfaceView SurfaceView = view.findViewById(R.id.surfaceView);
+        SurfaceView.setZOrderOnTop(true);
 
-        mSurfaceHolder = mSurfaceView.getHolder();
+        mSurfaceHolder = SurfaceView.getHolder();
         mSurfaceHolder.setFormat(PixelFormat.TRANSPARENT);
 
         mPaintOCRRect = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -405,18 +400,18 @@ public class OCRBReaderFragment extends Fragment
                 // coordinate.
                 int displayRotation = activity.getWindowManager().getDefaultDisplay().getRotation();
                 //noinspection ConstantConditions
-                mSensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
+                final int sensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
                 boolean swappedDimensions = false;
                 switch (displayRotation) {
                     case Surface.ROTATION_0:
                     case Surface.ROTATION_180:
-                        if (mSensorOrientation == 90 || mSensorOrientation == 270) {
+                        if (sensorOrientation == 90 || sensorOrientation == 270) {
                             swappedDimensions = true;
                         }
                         break;
                     case Surface.ROTATION_90:
                     case Surface.ROTATION_270:
-                        if (mSensorOrientation == 0 || mSensorOrientation == 180) {
+                        if (sensorOrientation == 0 || sensorOrientation == 180) {
                             swappedDimensions = true;
                         }
                         break;
